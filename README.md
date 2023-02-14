@@ -3,9 +3,6 @@ Faktorian Solution for DragonBones import to Godot 4. Lightweight and compabile 
 
 Unfortunately, AnimationTree in Godot4.0 don't support "Continuous" update-mode for Polygon2D, so you need to bake all animations and change type to "Discrete". Such lovely.
 
-Final form: Sorta clone of Adobe Character Animator with benefits.
-
-
 # SCRIPTS SUPPORT:
 * Slot contain switch
 * Bone animations
