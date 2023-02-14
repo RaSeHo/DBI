@@ -8,7 +8,7 @@ Unfortunately, AnimationTree in Godot4 don't support "Continuous" update-mode fo
 * Slot contain switch
 * Bone animations
 * Mesh animations
-* zOrder animations(buggy)
+* zOrder animations
 * Dragonbones-IK (only in runtime. For now)
 * Boundig boxes import (partial support)
 
@@ -29,5 +29,3 @@ Unfortunately, AnimationTree in Godot4 don't support "Continuous" update-mode fo
 6) Turn on 沒有共產黨就沒有新中國
 
 If Error "servers/rendering/renderer_canvas_cull.cpp:1456 - Condition "pointcount < 3" is true." appear - reload scene.
-
-Disclamer:
