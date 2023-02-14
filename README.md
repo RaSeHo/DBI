@@ -1,5 +1,5 @@
 # DBI
-Faktorian's Solution for DragonBones import to Godot 4.0. Lightweight and compabile with AnimationTree. Zero new types of nodes.
+Faktorian's Solution for DragonBones import to Godot 4. Lightweight and compabile with AnimationTree. Zero new types of nodes.
 
 Unfortunately, AnimationTree in Godot4.0 don't support "Continuous" update-mode for Polygon2D, so you need to bake all animations and change type to "Discrete". Such lovely.
 
