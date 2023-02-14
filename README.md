@@ -10,7 +10,7 @@ Final form: Sorta clone of Adobe Character Animator with benefits.
 * Slot contain switch
 * Bone animations
 * Mesh animations
-* zOrder animations
+* zOrder animations(buggy)
 * Dragonbones-IK (only in runtime. For now)
 * Boundig boxes import (partial support)
 
