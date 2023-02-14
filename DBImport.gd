@@ -43,7 +43,7 @@ func set_texture(node, path = ""):
 	if path=="":
 		path=node.name
 	var dir = DirAccess.open("res://"+jsonpath.get_file().get_basename()+"/textures/"+path.get_base_dir())
-	dir.list_dir_begin() # TODOGODOT4 fill missing arguments https://github.com/godotengine/godot/pull/40547
+	dir.list_dir_begin()
 	while true:
 		var file = dir.get_next()
 		if file == "":
