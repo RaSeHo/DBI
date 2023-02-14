@@ -3,21 +3,21 @@ Faktorian's Solution for DragonBones import to Godot 4.0. Lightweight and compab
 
 Unfortunately, AnimationTree in Godot4.0 don't support "Continuous" update-mode for Polygon2D, so you need to bake all animations and change type to "Discrete". Such lovely.
 
-#SCRIPTS SUPPORT:
+# SCRIPTS SUPPORT:
 * Slot contain switch
 * Bone animations
 * Mesh animations
 * zOrder animations
 * Dragonbones-IK(only in runtime. Currently.)
 
-#TODO:
+# TODO:
 - Add polygons blending, like Live2D does.
 - Complete support for slot-animations.
 - Fix-n-up assets import.
 - Texture Atlases.
 - Remove "DBSTYLE"
 
-#USAGE:
+# USAGE:
 0) Export from dragonbones json+multiple images. Script not support textureatlases. Currentrly.
 1) Put scene node to the (0,0) and set scale to (1,1)
 2) Attach script to root scene node and put paths for json-file and textures.
