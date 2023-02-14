@@ -1,7 +1,7 @@
 # DBI
 Faktorian Solution for DragonBones import to Godot 4. Lightweight and compabile with AnimationTree. Zero new types of nodes.
 
-Unfortunately, AnimationTree in Godot4.0 don't support "Continuous" update-mode for Polygon2D, so you need to bake all animations and change type to "Discrete". Such lovely.
+Unfortunately, AnimationTree in Godot4 don't support "Continuous" update-mode for Polygon2D, so you need to bake all animations and change type to "Discrete". Such lovely.
 
 # SCRIPTS SUPPORT:
 * Slot contain switch
