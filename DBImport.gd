@@ -7,41 +7,10 @@ extends Node2D
 @export_global_dir var textpath = "";
 @export var import : bool = false : set = dbimport
 
-var texturelist = [];
-
-func texnames(path):
-	var files = {}
-	var dir = DirAccess.open(path)
-	dir.list_dir_begin()
-	if dir:
-		dir.list_dir_begin()
-		var file_name = dir.get_next()
-		while file_name != "":
-			if dir.current_is_dir():
-				print("Found directory: " + file_name)
-			elif (not file_name.begins_with(".")) && (file_name.get_extension() == "png" || file_name.get_extension() == "jpg"):
-				files.append(path+"/"+file_name)
-			file_name = dir.get_next()
-	return files
-
-
-func add_textures():
-	var list = texnames(textpath);
-	var path = jsonpath.get_file().get_basename()+"/textures"
-	var dir = DirAccess.open(path)
-	if not dir:
-		dir = DirAccess.open("res://")
-		dir.make_dir_recursive(path)
-	for i in list.size():
-		if list[i].get_extension() == "":
-			pass;
-		else:
-			dir.copy(list[i], "res://"+path+"/"+list[i].get_file())
-
 func set_texture(node, path = ""):
 	if path=="":
 		path=node.name
-	var dir = DirAccess.open("res://"+jsonpath.get_file().get_basename()+"/textures/"+path.get_base_dir())
+	var dir = DirAccess.open(textpath+"/"+path.get_base_dir())
 	dir.list_dir_begin()
 	while true:
 		var file = dir.get_next()
@@ -49,9 +18,9 @@ func set_texture(node, path = ""):
 			break
 		elif (not file.begins_with(".")) && (file.get_basename() == path.get_file().get_basename()):
 			if path.get_base_dir().length()==0:
-				node.set_texture(load("res://"+jsonpath.get_file().get_basename()+"/textures/"+file))
+				node.set_texture(load(textpath+"/"+file))
 			else:
-				node.set_texture(load("res://"+jsonpath.get_file().get_basename()+"/textures/"+path.get_base_dir()+"/"+file))
+				node.set_texture(load(textpath+"/"+path.get_base_dir()+"/"+file))
 	dir.list_dir_end()
 
 func dbimport(val):
@@ -62,7 +31,7 @@ func dbimport(val):
 		return;
 	val=false;
 
-	add_textures()
+#	add_textures()
 
 	var file = FileAccess.open(jsonpath, FileAccess.READ)
 	if file == null :
@@ -71,6 +40,7 @@ func dbimport(val):
 	test_json_conv.parse(file.get_as_text())	
 	var json_result = test_json_conv.get_data()
 	file = null
+
 	#Skeleton2D build
 	for i in json_result.armature.size():
 		var true_vertex_oder_dict = {}
