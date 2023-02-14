@@ -15,13 +15,12 @@ Unfortunately, AnimationTree in Godot4.0 don't support "Continuous" update-mode 
 - Complete support for slot-animations.
 - Fix-n-up assets import.
 - Texture Atlases.
-- Remove "DBSTYLE"
 
 # USAGE:
 0) Copy all scripts to your res://
 1) Export from dragonbones json+multiple images. Script not support textureatlases. Currentrly.
 2) Put scene node to the (0,0) and set scale to (1,1)
-3) Attach script to root scene node and put paths for json-file and textures.
+3) Attach script to root scene node and put paths for json-file and textures in corresponding fields.
 4) Create in res:// folder with the same name as json and there create folder textures.
 5) Put to textures all images
 6) Press checkbox "Import".
