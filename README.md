@@ -18,10 +18,10 @@ Unfortunately, AnimationTree in Godot4.0 don't support "Continuous" update-mode 
 - Remove "DBSTYLE"
 
 # USAGE:
--1) Copy all scripts to your res://
-0) Export from dragonbones json+multiple images. Script not support textureatlases. Currentrly.
-1) Put scene node to the (0,0) and set scale to (1,1)
-2) Attach script to root scene node and put paths for json-file and textures.
-3) Create in res:// folder with the same name as json and there create folder textures.
-4) Put to textures all images
-5) Press checkbox "Import".
+0) Copy all scripts to your res://
+1) Export from dragonbones json+multiple images. Script not support textureatlases. Currentrly.
+2) Put scene node to the (0,0) and set scale to (1,1)
+3) Attach script to root scene node and put paths for json-file and textures.
+4) Create in res:// folder with the same name as json and there create folder textures.
+5) Put to textures all images
+6) Press checkbox "Import".
