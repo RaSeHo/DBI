@@ -2,22 +2,29 @@
 
 Faktorian Solution for DragonBones import to Godot 4. Lightweight and compabile with AnimationTree. Zero new types of nodes.
 
-Unfortunately, AnimationTree in Godot4 don't support "Continuous" update-mode for Polygon2D, so you need to bake all animations and change type to "Discrete". Such lovely.
+Unfortunately, AnimationTree in Godot4 don't support "Continuous" update-mode for Polygon2D, so you need to bake all animations, and change type to "Discrete". Thanks to Sumpfschweinhunden.
 
 # SCRIPTS SUPPORT:
 * Slot contain switch
 * Bone animations
 * Mesh animations
 * zOrder animations
-* Dragonbones-IK (only in runtime. For now)
+* Dragonbones-IK (only in runtime)
 * Boundig boxes import (partial support)
 
 # TODO:
-* Add mesh blending to AnimationNodes.
-* Add Smart-Bones, like Moho does.
-* Complete support for slot-animations.
-* Texture Atlases.
-* Nested armatures(but it can be achieved manually now, just copy Armature to the target slot)
+* Add blend, like "die-Live2d-scum" does.
+* Add Smart-Bones, like Moho does, for overcome Godot4 limitation to blending Polygon2d. It may work.
+* Complete support for slot-only animations.
+* Texture Atlases support.
+* Nested armatures(but it can be achieved manually now, just copy desired Armature as child of nest-slot)
+* Fix vertex-oder for more accurate polygons(Mostly cosmetic change).
+* Fix inner vertex mess.
+
+# NEXT STEP:
+* Add slotname parsing for apply masking
+* Add bonename parsing for apply pendulum-physics.
+* Threat bounding boxes as collision shapes
 
 # USAGE:
 0) Copy all scripts to your res://
