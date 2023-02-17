@@ -6,6 +6,10 @@ extends Node2D
 @export_global_file("*.json") var jsonpath = "";
 @export_global_dir var textpath = "";
 @export var import : bool = false : set = dbimport
+@export var bake : bool = false
+
+func bake(AL):
+	pass;
 
 func set_texture(node, path = ""):
 	if path=="":
@@ -30,8 +34,6 @@ func dbimport(val):
 	if !val:
 		return;
 	val=false;
-
-#	add_textures()
 
 	var file = FileAccess.open(jsonpath, FileAccess.READ)
 	if file == null :
@@ -489,4 +491,9 @@ func dbimport(val):
 
 			animation.set_length(length);
 			AL.add_animation(json_result.armature[i].animation[an].name, animation)
+#Add RESET animation...
+		var animation = Animation.new()
+		AL.add_animation("RESET", animation)
+		if bake:
+			bake(AL)
 		AP.add_animation_library("Animations", AL)
