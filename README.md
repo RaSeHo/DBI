@@ -17,7 +17,7 @@ Unfortunately, AnimationTree in Godot4 don't support "Continuous" update-mode fo
 * Add Smart-Bones, like Moho does, for overcome Godot4 limitation to blending Polygon2d. It may work.
 * Complete support for slot-only animations.
 * Texture Atlases support.
-* Nested armatures(but it can be achieved manually now, just copy desired Armature as child of nest-slot)
+* Nested armatures(but it can be achieved manually now, just copy desired Armature and paste as child of nest-slot)
 * Fix vertex-oder for more accurate polygons(Mostly cosmetic change).
 * Fix inner vertex mess.
 
