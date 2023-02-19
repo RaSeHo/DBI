@@ -8,9 +8,6 @@ extends Node2D
 @export var import : bool = false : set = dbimport
 @export var bake : bool = true
 
-func bake_anims(AL):
-	pass;
-
 func set_texture(node, path = ""):
 	if path=="":
 		path=node.name
@@ -51,6 +48,13 @@ func dbimport(val):
 		skeleton.set_name(json_result.armature[i].name);
 		self.add_child(skeleton);
 		skeleton.owner = get_tree().edited_scene_root;
+
+		var AP = AnimationPlayer.new()
+		AP.set_name("Animation")
+		AP.set_root(skeleton.get_path())
+
+		var rest = Animation.new()
+		rest.set_length(0);
 
 		if json_result.armature[i].has("bone"):
 			for b in json_result.armature[i].bone.size():
@@ -100,6 +104,21 @@ func dbimport(val):
 					bone.owner = get_tree().edited_scene_root
 				bone.rest=bone.transform
 
+				var track = "";
+				var path = String(skeleton.get_path_to(bone))
+
+				track = rest.add_track(Animation.TYPE_VALUE)
+				rest.track_set_path(track, path+":position");
+				rest.track_insert_key(track, 0, bone.position);
+				
+				track = rest.add_track(Animation.TYPE_VALUE)
+				rest.track_set_path(track, path+":rotation_degrees");
+				rest.track_insert_key(track, 0, bone.rotation_degrees);
+
+				track = rest.add_track(Animation.TYPE_VALUE)
+				rest.track_set_path(track, path+":scale");
+				rest.track_insert_key(track, 0, bone.scale);
+
 		if json_result.armature[i].has("slot"):
 			var masterslot = Node2D.new()
 			var slotscript = load("res://slots.gd")
@@ -136,10 +155,8 @@ func dbimport(val):
 			for sl in slots.size():
 				slots[sl].set_script(slotscript)
 				if json_result.armature[i].slot[sl].has("displayIndex"):
-					slots[sl].default = json_result.armature[i].slot[sl].displayIndex
 					slots[sl].current = json_result.armature[i].slot[sl].displayIndex
 				else:
-					slots[sl].default = 0
 					slots[sl].current = 0
 
 			for j in json_result.armature[i].skin.size():
@@ -266,7 +283,6 @@ func dbimport(val):
 
 							else:
 								display = Sprite2D.new()
-								display.set_name(json_result.armature[i].skin[j].slot[k].display[d].name);
 
 								if json_result.armature[i].skin[j].slot[k].display[d].has("transform"):
 									display.position=Vector2(0,0)
@@ -279,28 +295,12 @@ func dbimport(val):
 								var s_name = json_result.armature[i].skin[j].slot[k].display[d].name
 								if s_name.rfind("/")!=-1:
 									s_name = s_name.substr(s_name.rfind("/")+1)
-								pol.set_name(s_name)
+								display.set_name(s_name);
 
 								if(json_result.armature[i].skin[j].slot[k].display[d].has("path")):
 									set_texture(display,json_result.armature[i].skin[j].slot[k].display[d].path)
 								else:
 									set_texture(display,json_result.armature[i].skin[j].slot[k].display[d].name)
-								pol.set_texture(display.get_texture())
-
-								var vec = PackedVector2Array();
-								var uvs = PackedVector2Array();
-
-								vec.push_back(display.get_rect().position)
-								vec.push_back(Vector2(display.get_rect().position.x+display.get_rect().size.x,display.get_rect().position.y))
-								vec.push_back(Vector2(display.get_rect().position.x+display.get_rect().size.x,display.get_rect().position.y+display.get_rect().size.y))
-								vec.push_back(Vector2(display.get_rect().position.x,display.get_rect().position.y+display.get_rect().size.y))
-								pol.set_polygon(vec)
-
-								uvs.push_back(Vector2(0,0))
-								uvs.push_back(Vector2(display.get_rect().size.x,0))
-								uvs.push_back(Vector2(display.get_rect().size.x,display.get_rect().size.y))
-								uvs.push_back(Vector2(0,display.get_rect().size.y))
-								pol.set_uv(uvs)
 
 								var p_bone;
 
@@ -309,34 +309,28 @@ func dbimport(val):
 										p_bone = skeleton.find_child(json_result.armature[i].slot[sl].parent)
 										break;
 
-								skeleton.find_child("SLOTS",false).find_child(json_result.armature[i].skin[j].slot[k].name,false).add_child(pol)
-								pol.get_parent().global_transform=display.transform
-
-								pol.global_position=Vector2(0,0);
-								var vc = PackedVector2Array();
-								for p in pol.polygon.size():
-									vc.push_back(display.transform*pol.polygon[p])
-								pol.set_polygon(vc);
-
 								if json_result.armature[i].skin[j].slot[k].display[d].has("transform"):
 									if json_result.armature[i].skin[j].slot[k].display[d].transform.has("skX"):
-										pol.get_parent().set_rotation_degrees((json_result.armature[i].skin[j].slot[k].display[d].transform.skX))
+										display.set_rotation_degrees((json_result.armature[i].skin[j].slot[k].display[d].transform.skX))
 									if json_result.armature[i].skin[j].slot[k].display[d].transform.has("scX"):
-										pol.get_parent().scale.x=json_result.armature[i].skin[j].slot[k].display[d].transform.scX
+										display.scale.x=json_result.armature[i].skin[j].slot[k].display[d].transform.scX
 									if json_result.armature[i].skin[j].slot[k].display[d].transform.has("scY"):
-										pol.get_parent().scale.y=json_result.armature[i].skin[j].slot[k].display[d].transform.scY
-								pol.get_parent().global_transform=p_bone.get_global_transform()*pol.get_parent().global_transform
+										display.scale.y=json_result.armature[i].skin[j].slot[k].display[d].transform.scY
+								display.transform=p_bone.global_transform*display.transform;
+								skeleton.find_child("SLOTS",false).find_child(json_result.armature[i].skin[j].slot[k].name,false).add_child(display)
 
-								var remote = RemoteTransform2D.new()
-								remote.set_name(pol.get_parent().name)
-								p_bone.add_child(remote);
-								remote.set_global_transform(pol.get_parent().get_global_transform());
-								remote.remote_path=pol.get_parent().get_path()
-
-								pol.set_skeleton(skeleton.get_path())
-								
-								remote.owner = get_tree().edited_scene_root
-								pol.owner = get_tree().edited_scene_root
+								var remote = null;
+								for c in p_bone.get_children():
+									if c is RemoteTransform2D && c.name == display.name:
+										remote = c;
+								if remote == null:
+									remote = RemoteTransform2D.new()
+									remote.set_name(display.name)
+									p_bone.add_child(remote);
+									remote.set_global_transform(display.get_global_transform());
+									remote.remote_path=display.get_path()
+									remote.owner = get_tree().edited_scene_root
+								display.owner = get_tree().edited_scene_root
 
 		if json_result.armature[i].has("ik"):
 			var ikscript = load("res://IK.gd")
@@ -347,14 +341,9 @@ func dbimport(val):
 
 		if not json_result.armature[i].has("animation"):
 			return
-		var AP = AnimationPlayer.new()
-		AP.set_name("Animation")
-		AP.set_root(skeleton.get_path())
 		skeleton.add_child(AP)
 		AP.owner = get_tree().edited_scene_root
 		var AL = AnimationLibrary.new()
-		var rest = Animation.new()
-		rest.set_length(0);
 
 		for an in json_result.armature[i].animation.size():
 			var animation = Animation.new()
@@ -369,11 +358,6 @@ func dbimport(val):
 						var path = String(skeleton.get_path_to(skeleton.find_child(json_result.armature[i].animation[an].bone[bi].name)))+":position"
 						var track_pos_index = animation.add_track(Animation.TYPE_VALUE)
 						animation.track_set_path(track_pos_index, path)
-
-						if(rest.find_track(path, Animation.TYPE_VALUE)==-1):
-							var track = rest.add_track(Animation.TYPE_VALUE)
-							rest.track_set_path(track, path)
-							rest.track_insert_key(track, write_head, bone_position);
 
 						for f in json_result.armature[i].animation[an].bone[bi].translateFrame.size():
 							var newPos = bone_position
@@ -394,11 +378,6 @@ func dbimport(val):
 						var track_rot_index = animation.add_track(Animation.TYPE_VALUE)
 						animation.track_set_path(track_rot_index, path)
 
-						if(rest.find_track(path, Animation.TYPE_VALUE)==-1):
-							var track = rest.add_track(Animation.TYPE_VALUE)
-							rest.track_set_path(track, path)
-							rest.track_insert_key(track, write_head, bone_rot);
-
 						for f in json_result.armature[i].animation[an].bone[bi].rotateFrame.size():
 							var newRot = bone_rot
 							if  json_result.armature[i].animation[an].bone[bi].rotateFrame[f].has("rotate"):
@@ -415,11 +394,6 @@ func dbimport(val):
 						var path = String(skeleton.get_path_to(skeleton.find_child(json_result.armature[i].animation[an].bone[bi].name)))+":scale"
 						var track_scale_index = animation.add_track(Animation.TYPE_VALUE)
 						animation.track_set_path(track_scale_index, path)
-
-						if(rest.find_track(path, Animation.TYPE_VALUE)==-1):
-							var track = rest.add_track(Animation.TYPE_VALUE)
-							rest.track_set_path(track, path)
-							rest.track_insert_key(track, write_head, s_scale);
 
 						for f in json_result.armature[i].animation[an].bone[bi].scaleFrame.size():
 							var newScale = s_scale
@@ -442,11 +416,6 @@ func dbimport(val):
 
 					var path = String(skeleton.get_path_to(skeleton.find_child("SLOTS",false).find_child(json_result.armature[i].animation[an].ffd[ffdi].slot,false).find_child(f_name)))+":polygon"
 					animation.track_set_path(track_ffd_index, path);
-
-					if(rest.find_track(path, Animation.TYPE_VALUE)==-1):
-						var track = rest.add_track(Animation.TYPE_VALUE)
-						rest.track_set_path(track, path)
-						rest.track_insert_key(track, 0, skeleton.find_child("SLOTS",false).find_child(json_result.armature[i].animation[an].ffd[ffdi].slot,false).find_child(f_name).polygon);
 
 					if json_result.armature[i].animation[an].ffd[ffdi].has("frame"):
 						var write_head=0;
@@ -520,12 +489,6 @@ func dbimport(val):
 					var path = String(skeleton.get_path_to(slots))+":sl_oder"
 					animation.track_set_path(track_slot_index, path);
 					var write_head=0
-
-					if(rest.find_track(path, Animation.TYPE_VALUE)==-1):
-						var track = rest.add_track(Animation.TYPE_VALUE)
-						rest.track_set_path(track, path)
-						rest.track_insert_key(track, write_head, []);
-
 					for frame in json_result.armature[i].animation[an].zOrder.frame.size():
 						var arr = []
 						if json_result.armature[i].animation[an].zOrder.frame[frame].has("zOrder"):
@@ -539,7 +502,5 @@ func dbimport(val):
 			AL.add_animation(json_result.armature[i].animation[an].name, animation)
 
 		AL.add_animation("RESET",rest);
-		if bake:
-			bake_anims(AL)
 
 		AP.add_animation_library("", AL)
