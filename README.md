@@ -10,12 +10,11 @@ Unfortunately, AnimationTree in Godot4 don't support "Continuous" update-mode fo
 * Mesh animations
 * zOrder animations
 * Dragonbones-IK (only in runtime)
-* Boundig boxes import (partial support)
+* Boundig boxes
 
 # TODO:
 * Add blend, like "die-Live2d-scum" does.
-* Add Smart-Bones, like Moho does, for overcome Godot4 limitation to blending Polygon2d. It may work.
-* Complete support for slot-only animations.
+* Partial bone inherit.
 * Texture Atlases support.
 * Nested armatures(but it can be achieved manually now, just copy desired Armature and paste as child of nest-slot)
 * Fix vertex-oder for more accurate polygons (Mostly cosmetic change).
