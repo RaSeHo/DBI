@@ -13,10 +13,11 @@ Unfortunately, AnimationTree in Godot4 don't support "Continuous" update-mode fo
 * Boundig boxes
 
 # TODO:
-* Add blend, like "die-Live2d-scum" does.
+* Complete RESET animation
 * Partial bone inherit.
-* Texture Atlases support.
 * Nested armatures(but it can be achieved manually now, just copy desired Armature and paste as child of nest-slot)
+* Add mesh-blend, like "die-Live2d-scum" does.
+* Texture Atlases support.
 * Fix vertex-oder for more accurate polygons (Mostly cosmetic change).
 * Fix inner vertex mess (Mostly cosmetic change)
 
