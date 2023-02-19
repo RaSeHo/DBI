@@ -264,6 +264,11 @@ func dbimport(val):
 										display.owner = get_tree().edited_scene_root
 										true_vertex_oder_dict[json_result.armature[i].skin[j].slot[k].name][display.name]={"oder" : true_oder, "edges" : display_json.edges, "transformation" : trans}
 
+										var track = rest.add_track(Animation.TYPE_VALUE)
+										var path = String(skeleton.get_path_to(display))
+										rest.track_set_path(track, path+":polygon");
+										rest.track_insert_key(track, 0, display.polygon);
+
 									elif display_json.type == "boundingBox":
 
 										for sl in json_result.armature[i].slot.size():
@@ -502,5 +507,4 @@ func dbimport(val):
 			AL.add_animation(json_result.armature[i].animation[an].name, animation)
 
 		AL.add_animation("RESET",rest);
-
 		AP.add_animation_library("", AL)
