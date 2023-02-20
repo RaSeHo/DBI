@@ -8,6 +8,9 @@ extends Node2D
 @export var import : bool = false : set = dbimport
 @export var bake : bool = true
 
+func bake_anims(AL):
+	pass;
+
 func set_texture(node, path = ""):
 	if path=="":
 		path=node.name
@@ -108,14 +111,17 @@ func dbimport(val):
 				var path = String(skeleton.get_path_to(bone))
 
 				track = rest.add_track(Animation.TYPE_VALUE)
+				rest.value_track_set_update_mode(track,Animation.UPDATE_DISCRETE)
 				rest.track_set_path(track, path+":position");
 				rest.track_insert_key(track, 0, bone.position);
 				
 				track = rest.add_track(Animation.TYPE_VALUE)
+				rest.value_track_set_update_mode(track,Animation.UPDATE_DISCRETE)
 				rest.track_set_path(track, path+":rotation_degrees");
 				rest.track_insert_key(track, 0, bone.rotation_degrees);
 
 				track = rest.add_track(Animation.TYPE_VALUE)
+				rest.value_track_set_update_mode(track,Animation.UPDATE_DISCRETE)
 				rest.track_set_path(track, path+":scale");
 				rest.track_insert_key(track, 0, bone.scale);
 
@@ -145,10 +151,20 @@ func dbimport(val):
 					slot.set_modulate(C)
 				masterslot.add_child(slot);
 				slot.owner = get_tree().edited_scene_root
+
+				var track = rest.add_track(Animation.TYPE_VALUE)
+				rest.value_track_set_update_mode(track,Animation.UPDATE_DISCRETE)
+				rest.track_set_path(track, String(skeleton.get_path_to(slot))+":modulate");
+				rest.track_insert_key(track, 0, slot.modulate);
+
 			for sl in json_result.armature[i].slot.size():
 				if(json_result.armature[i].slot[sl].has("displayIndex")):
 					masterslot.slot_order(sl,json_result.armature[i].slot[sl].displayIndex)
 			masterslot.set_rest()
+
+			var track = rest.add_track(Animation.TYPE_VALUE)
+			rest.track_set_path(track, String(skeleton.get_path_to(masterslot))+":sl_oder");
+			rest.track_insert_key(track, 0, masterslot.sl_oder);
 
 			var slots = masterslot.get_children();
 			slotscript = load("res://slot.gd")
@@ -158,6 +174,11 @@ func dbimport(val):
 					slots[sl].current = json_result.armature[i].slot[sl].displayIndex
 				else:
 					slots[sl].current = 0
+
+				track = rest.add_track(Animation.TYPE_VALUE)
+				rest.value_track_set_update_mode(track,Animation.UPDATE_DISCRETE)
+				rest.track_set_path(track, String(skeleton.get_path_to(slots[sl]))+":current");
+				rest.track_insert_key(track, 0, slots[sl].current);
 
 			for j in json_result.armature[i].skin.size():
 				for k in json_result.armature[i].skin[j].slot.size():
@@ -264,9 +285,9 @@ func dbimport(val):
 										display.owner = get_tree().edited_scene_root
 										true_vertex_oder_dict[json_result.armature[i].skin[j].slot[k].name][display.name]={"oder" : true_oder, "edges" : display_json.edges, "transformation" : trans}
 
-										var track = rest.add_track(Animation.TYPE_VALUE)
-										var path = String(skeleton.get_path_to(display))
-										rest.track_set_path(track, path+":polygon");
+										track = rest.add_track(Animation.TYPE_VALUE);
+										rest.value_track_set_update_mode(track,Animation.UPDATE_DISCRETE)
+										rest.track_set_path(track, String(skeleton.get_path_to(display))+":polygon");
 										rest.track_insert_key(track, 0, display.polygon);
 
 									elif display_json.type == "boundingBox":
@@ -414,6 +435,7 @@ func dbimport(val):
 			if json_result.armature[i].animation[an].has("ffd"):
 				for ffdi in json_result.armature[i].animation[an].ffd.size():
 					var track_ffd_index = animation.add_track(Animation.TYPE_VALUE)
+					animation.value_track_set_update_mode(track_ffd_index,Animation.UPDATE_DISCRETE)
 					var f_name = json_result.armature[i].animation[an].ffd[ffdi].name
 
 					if f_name.rfind("/")!=-1:
@@ -464,27 +486,52 @@ func dbimport(val):
 
 			if json_result.armature[i].animation[an].has("slot"):
 				for sl in json_result.armature[i].animation[an].slot.size():
-					var slot = skeleton.find_child(json_result.armature[i].animation[an].slot[sl].name)
-					var write_head=0;
-					var track_slot_index = animation.add_track(Animation.TYPE_VALUE)
-					animation.value_track_set_update_mode(track_slot_index,Animation.UPDATE_DISCRETE)
-					var path = String(skeleton.get_path_to(slot))+":current"
-					animation.track_set_path(track_slot_index, path);
 
-					if(rest.find_track(path, Animation.TYPE_VALUE)==-1):
-						var track = rest.add_track(Animation.TYPE_VALUE)
-						rest.track_set_path(track, path)
-						rest.track_insert_key(track, write_head, slot.current);
+					if json_result.armature[i].animation[an].slot[sl].has("colorFrame"):
+						var write_head=0;
+						var slot = skeleton.find_child(json_result.armature[i].animation[an].slot[sl].name)
+						var track_slot_index = animation.add_track(Animation.TYPE_VALUE)
+						animation.value_track_set_update_mode(track_slot_index,Animation.UPDATE_DISCRETE)
+						var path = String(skeleton.get_path_to(slot))+":current"
+						animation.track_set_path(track_slot_index, path);
+
+						if(rest.find_track(path, Animation.TYPE_VALUE)==-1):
+							var track = rest.add_track(Animation.TYPE_VALUE)
+							rest.track_set_path(track, path)
+							rest.track_insert_key(track, write_head, slot.current);
+
+						for frame in json_result.armature[i].animation[an].slot[sl].colorFrame.size():
+							var value = 0;
+							if json_result.armature[i].animation[an].slot[sl].colorFrame[frame].has("value"):
+								value = json_result.armature[i].animation[an].slot[sl].colorFrame[frame].value
+							animation.track_insert_key(track_slot_index, write_head, value)
+							write_head+=json_result.armature[i].animation[an].slot[sl].colorFrame[frame].duration*framerate
+
+						if length<write_head:
+							length=write_head
 
 					if json_result.armature[i].animation[an].slot[sl].has("displayFrame"):
+						var write_head=0;
+						var slot = skeleton.find_child(json_result.armature[i].animation[an].slot[sl].name)
+						var track_slot_index = animation.add_track(Animation.TYPE_VALUE)
+						animation.value_track_set_update_mode(track_slot_index,Animation.UPDATE_DISCRETE)
+						var path = String(skeleton.get_path_to(slot))+":current"
+						animation.track_set_path(track_slot_index, path);
+
+						if(rest.find_track(path, Animation.TYPE_VALUE)==-1):
+							var track = rest.add_track(Animation.TYPE_VALUE)
+							rest.track_set_path(track, path)
+							rest.track_insert_key(track, write_head, slot.current);
+
 						for frame in json_result.armature[i].animation[an].slot[sl].displayFrame.size():
 							var value = 0;
 							if json_result.armature[i].animation[an].slot[sl].displayFrame[frame].has("value"):
 								value = json_result.armature[i].animation[an].slot[sl].displayFrame[frame].value
 							animation.track_insert_key(track_slot_index, write_head, value)
 							write_head+=json_result.armature[i].animation[an].slot[sl].displayFrame[frame].duration*framerate
-					if length<write_head:
-						length=write_head
+
+						if length<write_head:
+							length=write_head
 
 			if json_result.armature[i].animation[an].has("zOrder"):
 				if json_result.armature[i].animation[an].zOrder.has("frame"):
@@ -507,4 +554,8 @@ func dbimport(val):
 			AL.add_animation(json_result.armature[i].animation[an].name, animation)
 
 		AL.add_animation("RESET",rest);
+
+		if bake:
+			bake_anims(AL)
+
 		AP.add_animation_library("", AL)
