@@ -13,7 +13,6 @@ Unfortunately, AnimationTree in Godot4 don't support "Continuous" update-mode fo
 * Boundig boxes
 
 # TODO:
-* Complete RESET animation
 * Partial bone inherit.
 * Nested armatures(but it can be achieved manually now, just copy desired Armature and paste as child of nest-slot)
 * Add mesh-blend, like "die-Live2d-scum" does.
