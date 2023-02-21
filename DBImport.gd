@@ -8,9 +8,6 @@ extends Node2D
 @export var import : bool = false : set = dbimport
 @export var bake : bool = true
 
-func bake_anims(AL):
-	pass;
-
 func set_texture(node, path = ""):
 	if path=="":
 		path=node.name
@@ -50,6 +47,7 @@ func dbimport(val):
 		var skeleton = Skeleton2D.new();
 		skeleton.set_name(json_result.armature[i].name);
 		self.add_child(skeleton);
+		skeleton.set_modification_stack(SkeletonModificationStack2D.new());
 		skeleton.owner = get_tree().edited_scene_root;
 
 		var AP = AnimationPlayer.new()
@@ -157,28 +155,11 @@ func dbimport(val):
 				rest.track_set_path(track, String(skeleton.get_path_to(slot))+":modulate");
 				rest.track_insert_key(track, 0, slot.modulate);
 
-			for sl in json_result.armature[i].slot.size():
-				if(json_result.armature[i].slot[sl].has("displayIndex")):
-					masterslot.slot_order(sl,json_result.armature[i].slot[sl].displayIndex)
 			masterslot.set_rest()
 
 			var track = rest.add_track(Animation.TYPE_VALUE)
 			rest.track_set_path(track, String(skeleton.get_path_to(masterslot))+":sl_oder");
 			rest.track_insert_key(track, 0, masterslot.sl_oder);
-
-			var slots = masterslot.get_children();
-			slotscript = load("res://slot.gd")
-			for sl in slots.size():
-				slots[sl].set_script(slotscript)
-				if json_result.armature[i].slot[sl].has("displayIndex"):
-					slots[sl].current = json_result.armature[i].slot[sl].displayIndex
-				else:
-					slots[sl].current = 0
-
-				track = rest.add_track(Animation.TYPE_VALUE)
-				rest.value_track_set_update_mode(track,Animation.UPDATE_DISCRETE)
-				rest.track_set_path(track, String(skeleton.get_path_to(slots[sl]))+":current");
-				rest.track_insert_key(track, 0, slots[sl].current);
 
 			for j in json_result.armature[i].skin.size():
 				for k in json_result.armature[i].skin[j].slot.size():
@@ -194,28 +175,28 @@ func dbimport(val):
 										s_name = s_name.substr(s_name.rfind("/")+1)
 									display.set_name(s_name)
 
-									if(json_result.armature[i].skin[j].slot[k].display[d].has("path")):
-										set_texture(display,json_result.armature[i].skin[j].slot[k].display[d].path)
-									else:
-										set_texture(display,json_result.armature[i].skin[j].slot[k].display[d].name)
-
-									var true_oder = PackedVector2Array()
-
-									for v in range(0,display_json.vertices.size(),2):
-										true_oder.push_back(Vector2(display_json.vertices[v],display_json.vertices[v+1]));
-
-									var points2 = PackedVector2Array();
-									for p in range(0,display_json.edges.size()-1,2):
-										points2.push_back(true_oder[display_json.edges[p]])
-									var internal = true_oder.size()-points2.size();
-
-									if true_oder.size() >= display_json.edges.max()+1:
-										for p in true_oder.size():
-											if points2.find(true_oder[p])==-1:
-												points2.push_back(true_oder[p]);
-									display.set_polygon(points2);
-
 									if display_json.type == "mesh":
+										if(json_result.armature[i].skin[j].slot[k].display[d].has("path")):
+											set_texture(display,json_result.armature[i].skin[j].slot[k].display[d].path)
+										else:
+											set_texture(display,json_result.armature[i].skin[j].slot[k].display[d].name)
+
+										var true_oder = PackedVector2Array()
+
+										for v in range(0,display_json.vertices.size(),2):
+											true_oder.push_back(Vector2(display_json.vertices[v],display_json.vertices[v+1]));
+
+										var points2 = PackedVector2Array();
+										for p in range(0,display_json.edges.size()-1,2):
+											points2.push_back(true_oder[display_json.edges[p]])
+										var internal = true_oder.size()-points2.size();
+
+										if true_oder.size() >= display_json.edges.max()+1:
+											for p in true_oder.size():
+												if points2.find(true_oder[p])==-1:
+													points2.push_back(true_oder[p]);
+										display.set_polygon(points2);
+
 										display.set_internal_vertex_count(internal);
 										var triangles = [];
 										for v in range(0,display_json.triangles.size(),3):
@@ -292,6 +273,12 @@ func dbimport(val):
 
 									elif display_json.type == "boundingBox":
 
+										var true_oder = PackedVector2Array()
+
+										for v in range(0,display_json.vertices.size(),2):
+											true_oder.push_back(Vector2(display_json.vertices[v],display_json.vertices[v+1]));
+										display.set_polygon(true_oder)
+										
 										for sl in json_result.armature[i].slot.size():
 											display.transform=skeleton.find_child(json_result.armature[i].slot[sl].parent).get_global_transform()
 											if json_result.armature[i].slot[sl].name==json_result.armature[i].skin[j].slot[k].name:
@@ -358,12 +345,47 @@ func dbimport(val):
 									remote.owner = get_tree().edited_scene_root
 								display.owner = get_tree().edited_scene_root
 
+			var slots = masterslot.get_children();
+			slotscript = load("res://slot.gd")
+			for sl in slots.size():
+				slots[sl].set_script(slotscript)
+				if json_result.armature[i].slot[sl].has("displayIndex"):
+					slots[sl].current = json_result.armature[i].slot[sl].displayIndex
+				else:
+					slots[sl].current = 0
+
+				track = rest.add_track(Animation.TYPE_VALUE)
+				rest.value_track_set_update_mode(track,Animation.UPDATE_DISCRETE)
+				rest.track_set_path(track, String(skeleton.get_path_to(slots[sl]))+":current");
+				rest.track_insert_key(track, 0, slots[sl].current);
+
 		if json_result.armature[i].has("ik"):
-			var ikscript = load("res://IK.gd")
 			for ik in json_result.armature[i].ik.size():
-				var bone = skeleton.find_child(json_result.armature[i].ik[ik].bone)
-				bone.set_script(ikscript)
-				bone.pointB=bone.get_path_to(find_child(json_result.armature[i].ik[ik].target))
+				var bone1 = skeleton.find_child(json_result.armature[i].ik[ik].bone)
+				var bone2 = skeleton.find_child(json_result.armature[i].ik[ik].bone).get_parent();
+				var Tbone = skeleton.find_child(json_result.armature[i].ik[ik].target)
+				var LA = SkeletonModification2DLookAt.new()
+
+				LA.set_bone2d_node(skeleton.get_path_to(bone1));
+				LA.set_target_node(skeleton.get_path_to(Tbone));
+				LA.set_bone_index(bone1.get_index())
+
+				skeleton.get_modification_stack().add_modification(LA);
+
+				var TIK = SkeletonModification2DTwoBoneIK.new()
+				TIK.set_target_node(skeleton.get_path_to(Tbone))
+
+				TIK.set_joint_one_bone2d_node(skeleton.get_path_to(bone2));
+				TIK.set_joint_one_bone_idx(bone2.get_index());
+
+				TIK.set_joint_two_bone2d_node(skeleton.get_path_to(bone1));
+				TIK.set_joint_two_bone_idx(bone1.get_index());
+				if json_result.armature[i].ik[ik].has("bendPositive"):
+					TIK.set_flip_bend_direction(not json_result.armature[i].ik[ik].bendPositive)
+
+				skeleton.get_modification_stack().add_modification(TIK);
+
+				skeleton.get_modification_stack().set_enabled(true)
 
 		if not json_result.armature[i].has("animation"):
 			return
@@ -435,7 +457,7 @@ func dbimport(val):
 			if json_result.armature[i].animation[an].has("ffd"):
 				for ffdi in json_result.armature[i].animation[an].ffd.size():
 					var track_ffd_index = animation.add_track(Animation.TYPE_VALUE)
-					animation.value_track_set_update_mode(track_ffd_index,Animation.UPDATE_DISCRETE)
+#					animation.value_track_set_update_mode(track_ffd_index,Animation.UPDATE_DISCRETE)
 					var f_name = json_result.armature[i].animation[an].ffd[ffdi].name
 
 					if f_name.rfind("/")!=-1:
@@ -489,7 +511,7 @@ func dbimport(val):
 
 					if json_result.armature[i].animation[an].slot[sl].has("colorFrame"):
 						var write_head=0;
-						var slot = skeleton.find_child(json_result.armature[i].animation[an].slot[sl].name)
+						var slot = skeleton.find_child("SLOTS",false).find_child(json_result.armature[i].animation[an].slot[sl].name)
 						var track_slot_index = animation.add_track(Animation.TYPE_VALUE)
 						animation.value_track_set_update_mode(track_slot_index,Animation.UPDATE_DISCRETE)
 						var path = String(skeleton.get_path_to(slot))+":current"
@@ -512,7 +534,7 @@ func dbimport(val):
 
 					if json_result.armature[i].animation[an].slot[sl].has("displayFrame"):
 						var write_head=0;
-						var slot = skeleton.find_child(json_result.armature[i].animation[an].slot[sl].name)
+						var slot = skeleton.find_child("SLOTS",false).find_child(json_result.armature[i].animation[an].slot[sl].name)
 						var track_slot_index = animation.add_track(Animation.TYPE_VALUE)
 						animation.value_track_set_update_mode(track_slot_index,Animation.UPDATE_DISCRETE)
 						var path = String(skeleton.get_path_to(slot))+":current"
@@ -554,8 +576,4 @@ func dbimport(val):
 			AL.add_animation(json_result.armature[i].animation[an].name, animation)
 
 		AL.add_animation("RESET",rest);
-
-		if bake:
-			bake_anims(AL)
-
 		AP.add_animation_library("", AL)
