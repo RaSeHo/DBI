@@ -10,19 +10,19 @@ Unfortunately, AnimationTree in Godot4 don't support "Continuous" update-mode fo
 * Mesh animations
 * zOrder animations
 * Boundig boxes
+* Dragonbones-IK(TwoIK's)
 
 # TODO:
 * Partial bone inherit.
-* Dragonbones-IK (Full support)
-* Nested armatures(but it can be achieved manually now, just copy desired Armature and paste as child of nest-slot)
+* Nested armatures(but it can be achieved manually now, just copy desired Armature and paste as child of nest-slot.)
 * Add mesh-blend, like "die-Live2d-scum" does.
 * Texture Atlases support.
 * Fix vertex-oder for more accurate polygons (Mostly cosmetic change).
 * Fix inner vertex mess (Mostly cosmetic change)
 
 # NEXT STEP:
-* Add slotname parsing for apply masking
-* Add bonename parsing for apply pendulum-physics.
+* Add slotname parsing for apply masking.
+* Add bonename parsing for apply pendulum-physics. Or provided jiggle in 4.0.
 * Threat bounding boxes as collision shapes
 
 # USAGE:
