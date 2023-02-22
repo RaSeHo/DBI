@@ -76,20 +76,111 @@ func dbimport(val):
 						if json_result.armature[i].bone[b].transform.has("scY"):
 							sx = json_result.armature[i].bone[b].transform.scX;
 
-					par.add_child(bone);
+					if json_result.armature[i].bone[b].has("inheritRotation") || json_result.armature[i].bone[b].has("inheritScale"):
 
-					if json_result.armature[i].bone[b].has("transform"):
-						if json_result.armature[i].bone[b].transform.has("skX"):
-							bone.set_rotation_degrees(json_result.armature[i].bone[b].transform.skX)
-						if json_result.armature[i].bone[b].transform.has("skY"):
-							bone.set_rotation_degrees(json_result.armature[i].bone[b].transform.skY)
-					bone.set_name(json_result.armature[i].bone[b].name);
-					bone.apply_scale(Vector2(sx,sy))
-					bone.set_length(0)
+						par.get_parent().add_child(bone);
+						var remote = RemoteTransform2D.new()
+						remote.set_global_transform(bone.get_global_transform());
+						if json_result.armature[i].bone[b].has("inheritRotation"):
+							remote.set_update_rotation(json_result.armature[i].bone[b].inheritRotation)
+						if json_result.armature[i].bone[b].has("inheritScale"):
+							remote.set_update_scale(json_result.armature[i].bone[b].inheritScale)
+						par.add_child(remote);
+						bone.set_name(json_result.armature[i].bone[b].name);
+						remote.set_name("[RE]"+bone.name)
+						remote.remote_path=bone.get_path()
+
+						if json_result.armature[i].bone[b].has("transform"):
+
+							if json_result.armature[i].bone[b].transform.has("skX"):
+								if json_result.armature[i].bone[b].has("inheritRotation"):
+									if not json_result.armature[i].bone[b].inheritRotation:
+										bone.set_global_rotation_degrees(json_result.armature[i].bone[b].transform.skX)
+								remote.set_global_rotation_degrees(json_result.armature[i].bone[b].transform.skX)
+
+							if json_result.armature[i].bone[b].transform.has("skY"):
+								if json_result.armature[i].bone[b].has("inheritRotation"):
+									if not json_result.armature[i].bone[b].inheritRotation:
+										bone.set_global_rotation_degrees(json_result.armature[i].bone[b].transform.skY)
+								remote.set_global_rotation_degrees(json_result.armature[i].bone[b].transform.skY)
+
+						if json_result.armature[i].bone[b].has("inheritScale"):
+							if not json_result.armature[i].bone[b].inheritScale:
+								bone.set_global_scale(Vector2(sx,sy))
+
+						remote.set_global_scale(Vector2(sx,sy))
+						bone.set_length(0)
+						remote.set_position(pointB);
+						bone.set_position(pointB);
+						remote.owner = get_tree().edited_scene_root
+
+						var track = "";
+
+						var target;
+
+						if json_result.armature[i].bone[b].has("inheritRotation") || json_result.armature[i].bone[b].has("inheritScale"):
+							if not json_result.armature[i].bone[b].inheritRotation:
+								target = remote;
+						else:
+							target = bone
+
+						track = rest.add_track(Animation.TYPE_VALUE)
+						rest.value_track_set_update_mode(track,Animation.UPDATE_DISCRETE)
+						rest.track_set_path(track, String(skeleton.get_path_to(bone))+":position");
+						rest.track_insert_key(track, 0, bone.position);
+
+						if json_result.armature[i].bone[b].has("inheritRotation"):
+							if not json_result.armature[i].bone[b].inheritRotation:
+								target = remote;
+						else:
+							target = bone
+
+						track = rest.add_track(Animation.TYPE_VALUE)
+						rest.value_track_set_update_mode(track,Animation.UPDATE_DISCRETE)
+						rest.track_set_path(track, String(skeleton.get_path_to(target))+":rotation_degrees");
+						rest.track_insert_key(track, 0, target.rotation_degrees);
+
+						if json_result.armature[i].bone[b].has("inheritScale"):
+							if not json_result.armature[i].bone[b].inheritScale:
+								target = remote;
+						else:
+							target = bone
+
+						track = rest.add_track(Animation.TYPE_VALUE)
+						rest.value_track_set_update_mode(track,Animation.UPDATE_DISCRETE)
+						rest.track_set_path(track,  String(skeleton.get_path_to(target))+":scale");
+						rest.track_insert_key(track, 0, target.scale);
+
+					else:
+						par.add_child(bone);
+						if json_result.armature[i].bone[b].has("transform"):
+							if json_result.armature[i].bone[b].transform.has("skX"):
+								bone.set_rotation_degrees(json_result.armature[i].bone[b].transform.skX)
+							if json_result.armature[i].bone[b].transform.has("skY"):
+								bone.set_rotation_degrees(json_result.armature[i].bone[b].transform.skY)
+						bone.set_name(json_result.armature[i].bone[b].name);
+						bone.apply_scale(Vector2(sx,sy))
+						bone.set_length(0)
+						bone.set_position(pointB);
+
+						var track = rest.add_track(Animation.TYPE_VALUE)
+						rest.value_track_set_update_mode(track,Animation.UPDATE_DISCRETE)
+						rest.track_set_path(track, String(skeleton.get_path_to(bone))+":position");
+						rest.track_insert_key(track, 0, bone.position);
+
+						track = rest.add_track(Animation.TYPE_VALUE)
+						rest.value_track_set_update_mode(track,Animation.UPDATE_DISCRETE)
+						rest.track_set_path(track, String(skeleton.get_path_to(bone))+":rotation_degrees");
+						rest.track_insert_key(track, 0, bone.rotation_degrees);
+
+						track = rest.add_track(Animation.TYPE_VALUE)
+						rest.value_track_set_update_mode(track,Animation.UPDATE_DISCRETE)
+						rest.track_set_path(track, String(skeleton.get_path_to(bone))+":scale");
+						rest.track_insert_key(track, 0, bone.scale);
+
 					if json_result.armature[i].bone[b].has("length"):
 						bone.set_length(json_result.armature[i].bone[b].length)
 					bone.owner = get_tree().edited_scene_root
-					bone.set_position(pointB);
 
 				else:
 					bone.set_name(json_result.armature[i].bone[b].name);
@@ -103,25 +194,26 @@ func dbimport(val):
 					bone.set_position(origin);
 					skeleton.add_child(bone)
 					bone.owner = get_tree().edited_scene_root
-				bone.rest=bone.transform
 
-				var track = "";
-				var path = String(skeleton.get_path_to(bone))
+					var track = "";
+					var path = String(skeleton.get_path_to(bone))
 
-				track = rest.add_track(Animation.TYPE_VALUE)
-				rest.value_track_set_update_mode(track,Animation.UPDATE_DISCRETE)
-				rest.track_set_path(track, path+":position");
-				rest.track_insert_key(track, 0, bone.position);
+					track = rest.add_track(Animation.TYPE_VALUE)
+					rest.value_track_set_update_mode(track,Animation.UPDATE_DISCRETE)
+					rest.track_set_path(track, path+":position");
+					rest.track_insert_key(track, 0, bone.position);
+
+					track = rest.add_track(Animation.TYPE_VALUE)
+					rest.value_track_set_update_mode(track,Animation.UPDATE_DISCRETE)
+					rest.track_set_path(track, path+":rotation_degrees");
+					rest.track_insert_key(track, 0, bone.rotation_degrees);
+
+					track = rest.add_track(Animation.TYPE_VALUE)
+					rest.value_track_set_update_mode(track,Animation.UPDATE_DISCRETE)
+					rest.track_set_path(track, path+":scale");
+					rest.track_insert_key(track, 0, bone.scale);
 				
-				track = rest.add_track(Animation.TYPE_VALUE)
-				rest.value_track_set_update_mode(track,Animation.UPDATE_DISCRETE)
-				rest.track_set_path(track, path+":rotation_degrees");
-				rest.track_insert_key(track, 0, bone.rotation_degrees);
-
-				track = rest.add_track(Animation.TYPE_VALUE)
-				rest.value_track_set_update_mode(track,Animation.UPDATE_DISCRETE)
-				rest.track_set_path(track, path+":scale");
-				rest.track_insert_key(track, 0, bone.scale);
+				bone.rest=bone.transform
 
 		if json_result.armature[i].has("slot"):
 			var masterslot = Node2D.new()
@@ -158,6 +250,7 @@ func dbimport(val):
 			masterslot.set_rest()
 
 			var track = rest.add_track(Animation.TYPE_VALUE)
+			rest.value_track_set_update_mode(track,Animation.UPDATE_DISCRETE)
 			rest.track_set_path(track, String(skeleton.get_path_to(masterslot))+":sl_oder");
 			rest.track_insert_key(track, 0, masterslot.sl_oder);
 
@@ -365,26 +458,21 @@ func dbimport(val):
 				var bone2 = skeleton.find_child(json_result.armature[i].ik[ik].bone).get_parent();
 				var Tbone = skeleton.find_child(json_result.armature[i].ik[ik].target)
 				var LA = SkeletonModification2DLookAt.new()
-
 				LA.set_bone2d_node(skeleton.get_path_to(bone1));
 				LA.set_target_node(skeleton.get_path_to(Tbone));
 				LA.set_bone_index(bone1.get_index())
-
 				skeleton.get_modification_stack().add_modification(LA);
 
 				var TIK = SkeletonModification2DTwoBoneIK.new()
 				TIK.set_target_node(skeleton.get_path_to(Tbone))
-
 				TIK.set_joint_one_bone2d_node(skeleton.get_path_to(bone2));
 				TIK.set_joint_one_bone_idx(bone2.get_index());
-
 				TIK.set_joint_two_bone2d_node(skeleton.get_path_to(bone1));
 				TIK.set_joint_two_bone_idx(bone1.get_index());
 				if json_result.armature[i].ik[ik].has("bendPositive"):
 					TIK.set_flip_bend_direction(not json_result.armature[i].ik[ik].bendPositive)
 
 				skeleton.get_modification_stack().add_modification(TIK);
-
 				skeleton.get_modification_stack().set_enabled(true)
 
 		if not json_result.armature[i].has("animation"):
@@ -513,19 +601,27 @@ func dbimport(val):
 						var write_head=0;
 						var slot = skeleton.find_child("SLOTS",false).find_child(json_result.armature[i].animation[an].slot[sl].name)
 						var track_slot_index = animation.add_track(Animation.TYPE_VALUE)
-						animation.value_track_set_update_mode(track_slot_index,Animation.UPDATE_DISCRETE)
-						var path = String(skeleton.get_path_to(slot))+":current"
+						animation.value_track_set_update_mode(track_slot_index,Animation.UPDATE_CONTINUOUS)
+						var path = String(skeleton.get_path_to(slot))+":modulate"
 						animation.track_set_path(track_slot_index, path);
 
 						if(rest.find_track(path, Animation.TYPE_VALUE)==-1):
 							var track = rest.add_track(Animation.TYPE_VALUE)
 							rest.track_set_path(track, path)
-							rest.track_insert_key(track, write_head, slot.current);
+							rest.track_insert_key(track, write_head, slot.modulate);
 
 						for frame in json_result.armature[i].animation[an].slot[sl].colorFrame.size():
-							var value = 0;
+							var value = Color(1,1,1,1);
 							if json_result.armature[i].animation[an].slot[sl].colorFrame[frame].has("value"):
-								value = json_result.armature[i].animation[an].slot[sl].colorFrame[frame].value
+								if json_result.armature[i].animation[an].slot[sl].colorFrame[frame].value.has("aM"):
+									value.a=json_result.armature[i].animation[an].slot[sl].colorFrame[frame].value.aM/100
+								if json_result.armature[i].animation[an].slot[sl].colorFrame[frame].value.has("rM"):
+									value.r=json_result.armature[i].animation[an].slot[sl].colorFrame[frame].value.rM/100
+								if json_result.armature[i].animation[an].slot[sl].colorFrame[frame].value.has("gM"):
+									value.g=json_result.armature[i].animation[an].slot[sl].colorFrame[frame].value.gM/100
+								if json_result.armature[i].animation[an].slot[sl].colorFrame[frame].value.has("bM"):
+									value.b=json_result.armature[i].animation[an].slot[sl].colorFrame[frame].value.bM/100
+
 							animation.track_insert_key(track_slot_index, write_head, value)
 							write_head+=json_result.armature[i].animation[an].slot[sl].colorFrame[frame].duration*framerate
 
@@ -576,4 +672,5 @@ func dbimport(val):
 			AL.add_animation(json_result.armature[i].animation[an].name, animation)
 
 		AL.add_animation("RESET",rest);
+
 		AP.add_animation_library("", AL)
