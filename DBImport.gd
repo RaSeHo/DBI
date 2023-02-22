@@ -126,8 +126,8 @@ func dbimport(val):
 
 						track = rest.add_track(Animation.TYPE_VALUE)
 						rest.value_track_set_update_mode(track,Animation.UPDATE_DISCRETE)
-						rest.track_set_path(track, String(skeleton.get_path_to(bone))+":position");
-						rest.track_insert_key(track, 0, bone.position);
+						rest.track_set_path(track, String(skeleton.get_path_to(target))+":position");
+						rest.track_insert_key(track, 0, target.position);
 
 						if json_result.armature[i].bone[b].has("inheritRotation"):
 							if not json_result.armature[i].bone[b].inheritRotation:
@@ -397,7 +397,6 @@ func dbimport(val):
 									if json_result.armature[i].skin[j].slot[k].display[d].transform.has("y"):
 										display.position.y=json_result.armature[i].skin[j].slot[k].display[d].transform.y
 
-								var pol = Polygon2D.new()
 								var s_name = json_result.armature[i].skin[j].slot[k].display[d].name
 								if s_name.rfind("/")!=-1:
 									s_name = s_name.substr(s_name.rfind("/")+1)
@@ -490,8 +489,16 @@ func dbimport(val):
 
 					if json_result.armature[i].animation[an].bone[bi].has("translateFrame"):
 						var write_head=0;
-						var bone_position = skeleton.find_child(json_result.armature[i].animation[an].bone[bi].name).position
-						var path = String(skeleton.get_path_to(skeleton.find_child(json_result.armature[i].animation[an].bone[bi].name)))+":position"
+						var bone_position;
+						var path;
+						var bone_ref = skeleton.find_child("[RE]"+json_result.armature[i].animation[an].bone[bi].name)
+						if bone_ref == null:
+							bone_position = skeleton.find_child(json_result.armature[i].animation[an].bone[bi].name).position
+							path = String(skeleton.get_path_to(skeleton.find_child(json_result.armature[i].animation[an].bone[bi].name)))+":position"
+						else:
+							bone_position = skeleton.find_child("[RE]"+json_result.armature[i].animation[an].bone[bi].name).position
+							path = String(skeleton.get_path_to(skeleton.find_child("[RE]"+json_result.armature[i].animation[an].bone[bi].name)))+":position"
+
 						var track_pos_index = animation.add_track(Animation.TYPE_VALUE)
 						animation.track_set_path(track_pos_index, path)
 
@@ -508,9 +515,18 @@ func dbimport(val):
 							length=write_head
 
 					if json_result.armature[i].animation[an].bone[bi].has("rotateFrame"):
+
 						var write_head=0;
-						var bone_rot = skeleton.find_child(json_result.armature[i].animation[an].bone[bi].name).rotation_degrees
-						var path = String(skeleton.get_path_to(skeleton.find_child(json_result.armature[i].animation[an].bone[bi].name)))+":rotation_degrees"
+						var bone_rot;
+						var path;
+						var bone_ref = skeleton.find_child("[RE]"+json_result.armature[i].animation[an].bone[bi].name)
+						if bone_ref == null:
+							bone_rot = skeleton.find_child(json_result.armature[i].animation[an].bone[bi].name).rotation_degrees
+							path = String(skeleton.get_path_to(skeleton.find_child(json_result.armature[i].animation[an].bone[bi].name)))+":rotation_degrees"
+						else:
+							bone_rot = skeleton.find_child("[RE]"+json_result.armature[i].animation[an].bone[bi].name).rotation_degrees
+							path = String(skeleton.get_path_to(skeleton.find_child("[RE]"+json_result.armature[i].animation[an].bone[bi].name)))+":rotation_degrees"
+
 						var track_rot_index = animation.add_track(Animation.TYPE_VALUE)
 						animation.track_set_path(track_rot_index, path)
 
@@ -525,9 +541,18 @@ func dbimport(val):
 							length=write_head
 
 					if json_result.armature[i].animation[an].bone[bi].has("scaleFrame"):
+
 						var write_head=0;
-						var s_scale = skeleton.find_child(json_result.armature[i].animation[an].bone[bi].name).scale
-						var path = String(skeleton.get_path_to(skeleton.find_child(json_result.armature[i].animation[an].bone[bi].name)))+":scale"
+						var s_scale;
+						var path;
+						var bone_ref = skeleton.find_child("[RE]"+json_result.armature[i].animation[an].bone[bi].name)
+						if bone_ref == null:
+							s_scale = skeleton.find_child(json_result.armature[i].animation[an].bone[bi].name).scale
+							path = String(skeleton.get_path_to(skeleton.find_child(json_result.armature[i].animation[an].bone[bi].name)))+":scale"
+						else:
+							s_scale = skeleton.find_child("[RE]"+json_result.armature[i].animation[an].bone[bi].name).scale
+							path = String(skeleton.get_path_to(skeleton.find_child("[RE]"+json_result.armature[i].animation[an].bone[bi].name)))+":scale"
+
 						var track_scale_index = animation.add_track(Animation.TYPE_VALUE)
 						animation.track_set_path(track_scale_index, path)
 
