@@ -11,9 +11,9 @@ Unfortunately, AnimationTree in Godot4 don't support "Continuous" update-mode fo
 * zOrder animations
 * Boundig boxes
 * Dragonbones-IK(TwoIK's)
+* Partial bone inherit.
 
 # TODO:
-* Partial bone inherit.
 * Nested armatures(but it can be achieved manually now, just copy desired Armature and paste as child of nest-slot.)
 * Add mesh-blend, like "die-Live2d-scum" does.
 * Texture Atlases support.
