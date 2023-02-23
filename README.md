@@ -1,8 +1,8 @@
 # DBI
 
-Faktorian Solution for DragonBones import to Godot 4. Lightweight and compabile with AnimationTree. Zero new types of nodes.
+Faktorian Solution for DragonBones import to Godot 4. Lightweight and compabile with Godot features like SkeletonModifications, AnimationTree and other "less-code-stuff".
 
-Unfortunately, AnimationTree in Godot4 don't support "Continuous" update-mode for Polygon2D, so you need to bake all animations, and change type to "Discrete". Thanks to Sumpfschweinhunden.
+Unfortunately, AnimationTree in Godot4rc2 don't support "Continuous" update-mode for Polygon2D, so you need to bake all animations, and change type to "Discrete". Thanks to Sumpfschweinhunden and their weird friends.
 
 # SCRIPTS SUPPORT:
 * Slot contain switch
@@ -15,14 +15,14 @@ Unfortunately, AnimationTree in Godot4 don't support "Continuous" update-mode fo
 
 # TODO:
 * Nested armatures(but it can be achieved manually now, just copy desired Armature and paste as child of nest-slot.)
-* Add mesh-blend, like "die-Live2d-scum" does.
 * Texture Atlases support.
+* Packing to TA.
+* Add mesh-blend, like "die-Live2d-scum" does.
 * Fix vertex-oder for more accurate polygons (Mostly cosmetic change).
 * Fix inner vertex mess (Mostly cosmetic change)
 
 # NEXT STEP:
 * Add slotname parsing for apply masking.
-* Add bonename parsing for apply pendulum-physics. Or provided jiggle in 4.0.
 * Threat bounding boxes as collision shapes
 
 # USAGE:
