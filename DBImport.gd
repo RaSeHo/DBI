@@ -7,6 +7,9 @@ extends Node2D
 @export_global_dir var textpath = "";
 @export var import : bool = false : set = dbimport
 
+func apply_physics():
+	pass;
+
 func set_texture(node, path = ""):
 	if path=="":
 		path=node.name
@@ -128,9 +131,9 @@ func dbimport(val):
 
 						if json_result.armature[i].bone[b].has("inheritRotation"):
 							if json_result.armature[i].bone[b].inheritRotation==false:
-								target = remote;
+								target = bone;
 						else:
-							target = bone
+							target = remote;
 
 						track = rest.add_track(Animation.TYPE_VALUE)
 						rest.value_track_set_update_mode(track,Animation.UPDATE_DISCRETE)
@@ -138,10 +141,10 @@ func dbimport(val):
 						rest.track_insert_key(track, 0, target.rotation_degrees);
 
 						if json_result.armature[i].bone[b].has("inheritScale"):
-							if not json_result.armature[i].bone[b].inheritScale:
-								target = remote;
+							if json_result.armature[i].bone[b].inheritScale==false:
+								target = bone;
 						else:
-							target = bone
+							target = remote;
 
 						track = rest.add_track(Animation.TYPE_VALUE)
 						rest.value_track_set_update_mode(track,Animation.UPDATE_DISCRETE)
