@@ -6,7 +6,6 @@ extends Node2D
 @export_global_file("*.json") var jsonpath = "";
 @export_global_dir var textpath = "";
 @export var import : bool = false : set = dbimport
-@export var bake : bool = true
 
 func set_texture(node, path = ""):
 	if path=="":
@@ -64,17 +63,16 @@ func dbimport(val):
 				if json_result.armature[i].bone[b].has("parent"):
 					var par = skeleton.find_child(json_result.armature[i].bone[b].parent)
 					var pointB = Vector2(0,0);
-					var sx = 1;
-					var sy = 1;
+					var b_scale =  Vector2(1,1);
 					if json_result.armature[i].bone[b].has("transform"):
 						if json_result.armature[i].bone[b].transform.has('x'):
 							pointB.x= json_result.armature[i].bone[b].transform.x
 						if json_result.armature[i].bone[b].transform.has('y'):
 							pointB.y= json_result.armature[i].bone[b].transform.y
 						if json_result.armature[i].bone[b].transform.has("scX"):
-							sx = json_result.armature[i].bone[b].transform.scX;
+							b_scale.x = json_result.armature[i].bone[b].transform.scX;
 						if json_result.armature[i].bone[b].transform.has("scY"):
-							sx = json_result.armature[i].bone[b].transform.scX;
+							b_scale.y = json_result.armature[i].bone[b].transform.scX;
 
 					if json_result.armature[i].bone[b].has("inheritRotation") || json_result.armature[i].bone[b].has("inheritScale"):
 
@@ -96,19 +94,19 @@ func dbimport(val):
 								if json_result.armature[i].bone[b].has("inheritRotation"):
 									if not json_result.armature[i].bone[b].inheritRotation:
 										bone.set_global_rotation_degrees(json_result.armature[i].bone[b].transform.skX)
-								remote.set_global_rotation_degrees(json_result.armature[i].bone[b].transform.skX)
+								remote.set_rotation_degrees(json_result.armature[i].bone[b].transform.skX)
 
 							if json_result.armature[i].bone[b].transform.has("skY"):
 								if json_result.armature[i].bone[b].has("inheritRotation"):
 									if not json_result.armature[i].bone[b].inheritRotation:
 										bone.set_global_rotation_degrees(json_result.armature[i].bone[b].transform.skY)
-								remote.set_global_rotation_degrees(json_result.armature[i].bone[b].transform.skY)
+								remote.set_rotation_degrees(json_result.armature[i].bone[b].transform.skY)
 
 						if json_result.armature[i].bone[b].has("inheritScale"):
 							if not json_result.armature[i].bone[b].inheritScale:
-								bone.set_global_scale(Vector2(sx,sy))
+								bone.set_global_scale(b_scale)
 
-						remote.set_global_scale(Vector2(sx,sy))
+						remote.set_global_scale(b_scale)
 						bone.set_length(0)
 						remote.set_position(pointB);
 						bone.set_position(pointB);
@@ -119,8 +117,7 @@ func dbimport(val):
 						var target;
 
 						if json_result.armature[i].bone[b].has("inheritRotation") || json_result.armature[i].bone[b].has("inheritScale"):
-							if not json_result.armature[i].bone[b].inheritRotation:
-								target = remote;
+							target = remote;
 						else:
 							target = bone
 
@@ -130,7 +127,7 @@ func dbimport(val):
 						rest.track_insert_key(track, 0, target.position);
 
 						if json_result.armature[i].bone[b].has("inheritRotation"):
-							if not json_result.armature[i].bone[b].inheritRotation:
+							if json_result.armature[i].bone[b].inheritRotation==false:
 								target = remote;
 						else:
 							target = bone
@@ -159,7 +156,7 @@ func dbimport(val):
 							if json_result.armature[i].bone[b].transform.has("skY"):
 								bone.set_rotation_degrees(json_result.armature[i].bone[b].transform.skY)
 						bone.set_name(json_result.armature[i].bone[b].name);
-						bone.apply_scale(Vector2(sx,sy))
+						bone.set_scale(b_scale)
 						bone.set_length(0)
 						bone.set_position(pointB);
 
@@ -524,8 +521,12 @@ func dbimport(val):
 							bone_rot = skeleton.find_child(json_result.armature[i].animation[an].bone[bi].name).rotation_degrees
 							path = String(skeleton.get_path_to(skeleton.find_child(json_result.armature[i].animation[an].bone[bi].name)))+":rotation_degrees"
 						else:
-							bone_rot = skeleton.find_child("[RE]"+json_result.armature[i].animation[an].bone[bi].name).rotation_degrees
-							path = String(skeleton.get_path_to(skeleton.find_child("[RE]"+json_result.armature[i].animation[an].bone[bi].name)))+":rotation_degrees"
+							if not bone_ref.update_rotation:
+								bone_rot = skeleton.find_child(json_result.armature[i].animation[an].bone[bi].name).rotation_degrees
+								path = String(skeleton.get_path_to(skeleton.find_child(json_result.armature[i].animation[an].bone[bi].name)))+":rotation_degrees"
+							else:
+								bone_rot = skeleton.find_child("[RE]"+json_result.armature[i].animation[an].bone[bi].name).rotation_degrees
+								path = String(skeleton.get_path_to(skeleton.find_child("[RE]"+json_result.armature[i].animation[an].bone[bi].name)))+":rotation_degrees"
 
 						var track_rot_index = animation.add_track(Animation.TYPE_VALUE)
 						animation.track_set_path(track_rot_index, path)
@@ -546,12 +547,17 @@ func dbimport(val):
 						var s_scale;
 						var path;
 						var bone_ref = skeleton.find_child("[RE]"+json_result.armature[i].animation[an].bone[bi].name)
+
 						if bone_ref == null:
 							s_scale = skeleton.find_child(json_result.armature[i].animation[an].bone[bi].name).scale
 							path = String(skeleton.get_path_to(skeleton.find_child(json_result.armature[i].animation[an].bone[bi].name)))+":scale"
 						else:
-							s_scale = skeleton.find_child("[RE]"+json_result.armature[i].animation[an].bone[bi].name).scale
-							path = String(skeleton.get_path_to(skeleton.find_child("[RE]"+json_result.armature[i].animation[an].bone[bi].name)))+":scale"
+							if not bone_ref.update_scale:
+								s_scale = skeleton.find_child(json_result.armature[i].animation[an].bone[bi].name).scale
+								path = String(skeleton.get_path_to(skeleton.find_child(json_result.armature[i].animation[an].bone[bi].name)))+":scale"
+							else:
+								s_scale = skeleton.find_child("[RE]"+json_result.armature[i].animation[an].bone[bi].name).scale
+								path = String(skeleton.get_path_to(skeleton.find_child("[RE]"+json_result.armature[i].animation[an].bone[bi].name)))+":scale"
 
 						var track_scale_index = animation.add_track(Animation.TYPE_VALUE)
 						animation.track_set_path(track_scale_index, path)
@@ -697,5 +703,4 @@ func dbimport(val):
 			AL.add_animation(json_result.armature[i].animation[an].name, animation)
 
 		AL.add_animation("RESET",rest);
-
 		AP.add_animation_library("", AL)
