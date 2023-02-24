@@ -14,15 +14,17 @@ Unfortunately, AnimationTree in Godot4 don't support "Continuous" update-mode fo
 * Partial bone inherit.
 
 # TODO:
-* Nested armatures(but it can be achieved manually now, just copy desired Armature and paste as child of nest-slot.)
-* Texture Atlases support.
-* Packing to TA.
-* Add mesh-blend, like "die-Live2d-scum" does.
-* Fix vertex-oder for more accurate polygons (Mostly cosmetic change).
+* Easing and curve support
+* Nested armatures (But it can be achieved manually now, just copy desired Armature and paste as child of nest-slot)
+* Texture Atlases support
+* Packing to TA
+* Add mesh-blend, like "die-Live2d-scum" does
+* Code unification (Cosmetic change)
+* Fix vertex-oder for more accurate polygons (Mostly cosmetic change)
 * Fix inner vertex mess (Mostly cosmetic change)
 
 # NEXT STEP:
-* Add slotname parsing for apply masking.
+* Add slotname parsing for apply masking and other stuff
 
 # USAGE:
 0) Copy all scripts to your res://
