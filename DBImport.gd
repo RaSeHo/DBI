@@ -544,9 +544,11 @@ func dbimport(val):
 							newRot += nextRot;
 							if  json_result.armature[i].animation[an].bone[bi].rotateFrame[f].has("clockwise"):
 								if json_result.armature[i].animation[an].bone[bi].rotateFrame[f].clockwise > 0:
-									nextRot = 360*(abs(json_result.armature[i].animation[an].bone[bi].rotateFrame[f].clockwise)-1);
+									nextRot = 360*((abs(json_result.armature[i].animation[an].bone[bi].rotateFrame[f].clockwise)-1));
 								elif json_result.armature[i].animation[an].bone[bi].rotateFrame[f].clockwise < 0:
-									nextRot = -360*(abs(json_result.armature[i].animation[an].bone[bi].rotateFrame[f].clockwise)-1);
+									nextRot = -360*((abs(json_result.armature[i].animation[an].bone[bi].rotateFrame[f].clockwise)-1));
+							if (f>0):
+								newRot += int(animation.track_get_key_value(track_rot_index, f-1)/360)*360;
 							animation.track_insert_key(track_rot_index, write_head, newRot)
 							write_head+=json_result.armature[i].animation[an].bone[bi].rotateFrame[f].duration*framerate
 
