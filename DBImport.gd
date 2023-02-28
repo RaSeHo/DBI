@@ -546,26 +546,22 @@ func dbimport(val):
 						var track_rot_index = animation.add_track(Animation.TYPE_BEZIER)
 						animation.track_set_path(track_rot_index, path)
 
-						var nextRot = 0;
+						var cwRot = 0;
 						var newRot  = 0;
 						var offset = 0;
 
 						for f in json_result.armature[i].animation[an].bone[bi].rotateFrame.size():
 							newRot = bone_rot
+
 							if  json_result.armature[i].animation[an].bone[bi].rotateFrame[f].has("rotate"):
 								newRot += json_result.armature[i].animation[an].bone[bi].rotateFrame[f].rotate
-							newRot += nextRot
-							nextRot=0;
-							
+
+							newRot += cwRot+offset
+							offset += cwRot
+
+							cwRot=0;
 							if  json_result.armature[i].animation[an].bone[bi].rotateFrame[f].has("clockwise"):
-								nextRot = 360*(abs(json_result.armature[i].animation[an].bone[bi].rotateFrame[f].clockwise)-1);
-								if json_result.armature[i].animation[an].bone[bi].rotateFrame[f].clockwise < 0: 
-									nextRot *= -1
-									offset -= 360*(abs(json_result.armature[i].animation[an].bone[bi].rotateFrame[f].clockwise)-1);
-								else:
-									offset += 360*(abs(json_result.armature[i].animation[an].bone[bi].rotateFrame[f].clockwise)-1);
-								nextRot += offset;
-								print(offset);
+								cwRot = 360*(json_result.armature[i].animation[an].bone[bi].rotateFrame[f].clockwise);
 							animation.bezier_track_insert_key(track_rot_index, write_head, newRot, Vector2(0,0), Vector2(0,0))
 							write_head+=json_result.armature[i].animation[an].bone[bi].rotateFrame[f].duration*framerate
 
