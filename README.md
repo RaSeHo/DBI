@@ -14,8 +14,7 @@ Unfortunately, AnimationTree in Godot4 don't support "Continuous" update-mode fo
 * Partial bone inherit.
 
 # TODO:
-* CW\CCW import
-* Easing and curve support
+* Easing curve support
 * Nested armatures (But it can be achieved manually now, just copy desired Armature and paste as child of nest-slot)
 * Texture Atlases support
 * Packing to TA
