@@ -503,16 +503,26 @@ func dbimport(val):
 							bone_position = skeleton.find_child("[RE]"+json_result.armature[i].animation[an].bone[bi].name).position
 							path = String(skeleton.get_path_to(skeleton.find_child("[RE]"+json_result.armature[i].animation[an].bone[bi].name)))+":position"
 
-						var track_pos_index = animation.add_track(Animation.TYPE_VALUE)
-						animation.track_set_path(track_pos_index, path)
+						var track_pos_x_index = animation.add_track(Animation.TYPE_BEZIER)
+						var track_pos_y_index = animation.add_track(Animation.TYPE_BEZIER)
+						animation.track_set_path(track_pos_x_index, path+":x")
+						animation.track_set_path(track_pos_y_index, path+":y")
 
 						for f in json_result.armature[i].animation[an].bone[bi].translateFrame.size():
+
 							var newPos = bone_position
+
+							if  json_result.armature[i].animation[an].bone[bi].translateFrame[f].has("curve"):
+								pass;
+
 							if  json_result.armature[i].animation[an].bone[bi].translateFrame[f].has("x"):
 								newPos.x+=json_result.armature[i].animation[an].bone[bi].translateFrame[f].x
 							if  json_result.armature[i].animation[an].bone[bi].translateFrame[f].has("y"):
 								newPos.y+=json_result.armature[i].animation[an].bone[bi].translateFrame[f].y
-							animation.track_insert_key(track_pos_index, write_head, newPos)
+
+							animation.bezier_track_insert_key(track_pos_x_index, write_head, newPos.x,Vector2(0,0),Vector2(0,0))
+							animation.bezier_track_insert_key(track_pos_y_index, write_head, newPos.y,Vector2(0,0),Vector2(0,0))
+
 							if json_result.armature[i].animation[an].bone[bi].translateFrame[f].has("duration") :
 								write_head+=json_result.armature[i].animation[an].bone[bi].translateFrame[f].duration*framerate
 
@@ -522,6 +532,7 @@ func dbimport(val):
 						var path;
 						var bone_ref = skeleton.find_child("[RE]"+json_result.armature[i].animation[an].bone[bi].name)
 						if bone_ref == null:
+							bone_ref = skeleton.find_child(json_result.armature[i].animation[an].bone[bi].name)
 							bone_rot = skeleton.find_child(json_result.armature[i].animation[an].bone[bi].name).rotation_degrees
 							path = String(skeleton.get_path_to(skeleton.find_child(json_result.armature[i].animation[an].bone[bi].name)))+":rotation_degrees"
 						else:
@@ -532,24 +543,30 @@ func dbimport(val):
 								bone_rot = skeleton.find_child("[RE]"+json_result.armature[i].animation[an].bone[bi].name).rotation_degrees
 								path = String(skeleton.get_path_to(skeleton.find_child("[RE]"+json_result.armature[i].animation[an].bone[bi].name)))+":rotation_degrees"
 
-						var track_rot_index = animation.add_track(Animation.TYPE_VALUE)
+						var track_rot_index = animation.add_track(Animation.TYPE_BEZIER)
 						animation.track_set_path(track_rot_index, path)
 
-						var nextRot=0;
-						var newRot =0;
+						var nextRot = 0;
+						var newRot  = 0;
+						var offset = 0;
+
 						for f in json_result.armature[i].animation[an].bone[bi].rotateFrame.size():
 							newRot = bone_rot
 							if  json_result.armature[i].animation[an].bone[bi].rotateFrame[f].has("rotate"):
 								newRot += json_result.armature[i].animation[an].bone[bi].rotateFrame[f].rotate
-							newRot += nextRot;
+							newRot += nextRot
+							nextRot=0;
+							
 							if  json_result.armature[i].animation[an].bone[bi].rotateFrame[f].has("clockwise"):
-								if json_result.armature[i].animation[an].bone[bi].rotateFrame[f].clockwise > 0:
-									nextRot = 360*((abs(json_result.armature[i].animation[an].bone[bi].rotateFrame[f].clockwise)-1));
-								elif json_result.armature[i].animation[an].bone[bi].rotateFrame[f].clockwise < 0:
-									nextRot = -360*((abs(json_result.armature[i].animation[an].bone[bi].rotateFrame[f].clockwise)-1));
-							if (f>0):
-								newRot += int(animation.track_get_key_value(track_rot_index, f-1)/360)*360;
-							animation.track_insert_key(track_rot_index, write_head, newRot)
+								nextRot = 360*(abs(json_result.armature[i].animation[an].bone[bi].rotateFrame[f].clockwise)-1);
+								if json_result.armature[i].animation[an].bone[bi].rotateFrame[f].clockwise < 0: 
+									nextRot *= -1
+									offset -= 360*(abs(json_result.armature[i].animation[an].bone[bi].rotateFrame[f].clockwise)-1);
+								else:
+									offset += 360*(abs(json_result.armature[i].animation[an].bone[bi].rotateFrame[f].clockwise)-1);
+								nextRot += offset;
+								print(offset);
+							animation.bezier_track_insert_key(track_rot_index, write_head, newRot, Vector2(0,0), Vector2(0,0))
 							write_head+=json_result.armature[i].animation[an].bone[bi].rotateFrame[f].duration*framerate
 
 					if json_result.armature[i].animation[an].bone[bi].has("scaleFrame"):
@@ -570,8 +587,10 @@ func dbimport(val):
 								s_scale = skeleton.find_child("[RE]"+json_result.armature[i].animation[an].bone[bi].name).scale
 								path = String(skeleton.get_path_to(skeleton.find_child("[RE]"+json_result.armature[i].animation[an].bone[bi].name)))+":scale"
 
-						var track_scale_index = animation.add_track(Animation.TYPE_VALUE)
-						animation.track_set_path(track_scale_index, path)
+						var track_scale_x_index = animation.add_track(Animation.TYPE_BEZIER)
+						var track_scale_y_index = animation.add_track(Animation.TYPE_BEZIER)
+						animation.track_set_path(track_scale_x_index, path+":x")
+						animation.track_set_path(track_scale_y_index, path+":y")
 
 						for f in json_result.armature[i].animation[an].bone[bi].scaleFrame.size():
 							var newScale = s_scale
@@ -579,7 +598,8 @@ func dbimport(val):
 								newScale.x = json_result.armature[i].animation[an].bone[bi].scaleFrame[f].x
 							if  json_result.armature[i].animation[an].bone[bi].scaleFrame[f].has("y"):
 								newScale.y = json_result.armature[i].animation[an].bone[bi].scaleFrame[f].y
-							animation.track_insert_key(track_scale_index, write_head, newScale)
+							animation.bezier_track_insert_key(track_scale_x_index, write_head, newScale.x)
+							animation.bezier_track_insert_key(track_scale_y_index, write_head, newScale.y)
 							write_head+=json_result.armature[i].animation[an].bone[bi].scaleFrame[f].duration*framerate
 
 			if json_result.armature[i].animation[an].has("ffd"):
@@ -634,31 +654,43 @@ func dbimport(val):
 				for sl in json_result.armature[i].animation[an].slot.size():
 
 					if json_result.armature[i].animation[an].slot[sl].has("colorFrame"):
+
 						var write_head=0;
 						var slot = skeleton.find_child("SLOTS",false).find_child(json_result.armature[i].animation[an].slot[sl].name)
-						var track_slot_index = animation.add_track(Animation.TYPE_VALUE)
-						animation.value_track_set_update_mode(track_slot_index,Animation.UPDATE_CONTINUOUS)
+						var track_aM_index = animation.add_track(Animation.TYPE_BEZIER)
+						var track_rM_index = animation.add_track(Animation.TYPE_BEZIER)
+						var track_gM_index = animation.add_track(Animation.TYPE_BEZIER)
+						var track_bM_index = animation.add_track(Animation.TYPE_BEZIER)
 						var path = String(skeleton.get_path_to(slot))+":modulate"
-						animation.track_set_path(track_slot_index, path);
+						animation.track_set_path(track_aM_index, path+":a");
+						animation.track_set_path(track_rM_index, path+":r");
+						animation.track_set_path(track_gM_index, path+":g");
+						animation.track_set_path(track_bM_index, path+":b");
 
+#move to init
 						if(rest.find_track(path, Animation.TYPE_VALUE)==-1):
 							var track = rest.add_track(Animation.TYPE_VALUE)
 							rest.track_set_path(track, path)
 							rest.track_insert_key(track, write_head, slot.modulate);
 
 						for frame in json_result.armature[i].animation[an].slot[sl].colorFrame.size():
-							var value = Color(1,1,1,1);
+#change to slot-reset value
+							var value = slot.modulate;
 							if json_result.armature[i].animation[an].slot[sl].colorFrame[frame].has("value"):
 								if json_result.armature[i].animation[an].slot[sl].colorFrame[frame].value.has("aM"):
-									value.a=json_result.armature[i].animation[an].slot[sl].colorFrame[frame].value.aM/100
+									value.a = json_result.armature[i].animation[an].slot[sl].colorFrame[frame].value.aM/100
 								if json_result.armature[i].animation[an].slot[sl].colorFrame[frame].value.has("rM"):
-									value.r=json_result.armature[i].animation[an].slot[sl].colorFrame[frame].value.rM/100
+									value.r = json_result.armature[i].animation[an].slot[sl].colorFrame[frame].value.rM/100
 								if json_result.armature[i].animation[an].slot[sl].colorFrame[frame].value.has("gM"):
-									value.g=json_result.armature[i].animation[an].slot[sl].colorFrame[frame].value.gM/100
+									value.g = json_result.armature[i].animation[an].slot[sl].colorFrame[frame].value.gM/100
 								if json_result.armature[i].animation[an].slot[sl].colorFrame[frame].value.has("bM"):
-									value.b=json_result.armature[i].animation[an].slot[sl].colorFrame[frame].value.bM/100
+									value.b = json_result.armature[i].animation[an].slot[sl].colorFrame[frame].value.bM/100
 
-							animation.track_insert_key(track_slot_index, write_head, value)
+							animation.bezier_track_insert_key(track_aM_index, write_head, value.a)
+							animation.bezier_track_insert_key(track_rM_index, write_head, value.r)
+							animation.bezier_track_insert_key(track_gM_index, write_head, value.g)
+							animation.bezier_track_insert_key(track_bM_index, write_head, value.b)
+
 							write_head+=json_result.armature[i].animation[an].slot[sl].colorFrame[frame].duration*framerate
 
 					if json_result.armature[i].animation[an].slot[sl].has("displayFrame"):
