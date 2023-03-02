@@ -2,8 +2,6 @@
 
 Faktorian Solution for DragonBones import to Godot 4. Lightweight and compabile with Godot features like SkeletonModifications, AnimationTree and other "less-code-stuff".
 
-Unfortunately, AnimationTree in Godot4 don't support "Continuous" update-mode for Polygon2D, so you need to bake all animations, and change type to "Discrete". Thanks to Sumpfschweinhunden and their weird friends.
-
 # SCRIPTS SUPPORT:
 * Slot contain switch
 * Bone animations
@@ -12,9 +10,9 @@ Unfortunately, AnimationTree in Godot4 don't support "Continuous" update-mode fo
 * Boundig boxes
 * Dragonbones-IK(TwoIK's, ignore weight)
 * Partial bone inherit.
+* Easing curve support
 
 # TODO:
-* Easing curve support
 * Nested armatures (But it can be achieved manually now, just copy desired Armature and paste as child of nest-slot)
 * Texture Atlases support
 * Packing to TA
