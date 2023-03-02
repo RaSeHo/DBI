@@ -7,6 +7,53 @@ extends Node2D
 @export_dir var textpath = "";
 @export var import : bool = false : set = dbimport
 
+func curvature(animation,track: int,start_f: int,curve: Array):
+	var finish_f = start_f+1;
+	var offset = 0;
+	var ta = animation.track_get_key_time(track,start_f)
+	var va = animation.bezier_track_get_key_value(track,start_f)
+	var tb = animation.track_get_key_time(track,start_f+1)
+	var vb = animation.bezier_track_get_key_value(track,start_f+1)
+
+#fix relativity
+
+	if curve.size()>4:
+		for c in range(2,curve.size()-2,6):
+			animation.bezier_track_insert_key(
+				track,
+				lerp(ta, tb, curve[c+2]),
+				lerp(va, vb, curve[c+3]),
+				Vector2(
+					lerp(ta, tb, curve[c+0])-lerp(ta, tb, curve[c+2]),
+					lerp(va, vb, curve[c+1])-lerp(va, vb, curve[c+3])
+				),
+				Vector2(
+					lerp(ta, tb, curve[c+4])-lerp(ta, tb, curve[c+2]),
+					lerp(va, vb, curve[c+5])-lerp(va, vb, curve[c+3])
+				)
+			);
+			finish_f += 1;
+			offset+=1
+
+	animation.bezier_track_set_key_out_handle(
+		track,
+		start_f,
+		Vector2(
+			lerp(ta,tb,curve[0])-ta,
+			lerp(va,vb,curve[1])-va
+		)
+	);
+	animation.bezier_track_set_key_in_handle(
+		track,
+		finish_f,
+		Vector2(
+			lerp(ta,tb,curve[curve.size()-2])-tb,
+			lerp(va,vb,curve[curve.size()-1])-vb
+		)
+	);
+	return offset;
+
+
 func set_texture(node, path = ""):
 	if path=="":
 		path=node.name
@@ -508,23 +555,26 @@ func dbimport(val):
 						animation.track_set_path(track_pos_x_index, path+":x")
 						animation.track_set_path(track_pos_y_index, path+":y")
 
+						var inx = 0;
+						var iny = 0;
+						var dur = 0;
+
 						for f in json_result.armature[i].animation[an].bone[bi].translateFrame.size():
 
 							var newPos = bone_position
-
-							if  json_result.armature[i].animation[an].bone[bi].translateFrame[f].has("curve"):
-								pass;
-
 							if  json_result.armature[i].animation[an].bone[bi].translateFrame[f].has("x"):
 								newPos.x+=json_result.armature[i].animation[an].bone[bi].translateFrame[f].x
 							if  json_result.armature[i].animation[an].bone[bi].translateFrame[f].has("y"):
 								newPos.y+=json_result.armature[i].animation[an].bone[bi].translateFrame[f].y
+							animation.bezier_track_insert_key(track_pos_x_index, write_head, newPos.x)
+							animation.bezier_track_insert_key(track_pos_y_index, write_head, newPos.y)
+							write_head+=json_result.armature[i].animation[an].bone[bi].translateFrame[f].duration*framerate
 
-							animation.bezier_track_insert_key(track_pos_x_index, write_head, newPos.x,Vector2(0,0),Vector2(0,0))
-							animation.bezier_track_insert_key(track_pos_y_index, write_head, newPos.y,Vector2(0,0),Vector2(0,0))
-
-							if json_result.armature[i].animation[an].bone[bi].translateFrame[f].has("duration") :
-								write_head+=json_result.armature[i].animation[an].bone[bi].translateFrame[f].duration*framerate
+						var offset = 0;
+						for f in json_result.armature[i].animation[an].bone[bi].translateFrame.size():
+							if json_result.armature[i].animation[an].bone[bi].translateFrame[f].has("curve"):
+								curvature(animation,track_pos_y_index,f+offset,json_result.armature[i].animation[an].bone[bi].translateFrame[f].curve);
+								offset += curvature(animation,track_pos_x_index,f+offset,json_result.armature[i].animation[an].bone[bi].translateFrame[f].curve);
 
 					if json_result.armature[i].animation[an].bone[bi].has("rotateFrame"):
 						var write_head=0;
@@ -565,6 +615,12 @@ func dbimport(val):
 							animation.bezier_track_insert_key(track_rot_index, write_head, newRot, Vector2(0,0), Vector2(0,0))
 							write_head+=json_result.armature[i].animation[an].bone[bi].rotateFrame[f].duration*framerate
 
+						offset = 0;
+						for f in json_result.armature[i].animation[an].bone[bi].rotateFrame.size():
+							print(231)
+							if json_result.armature[i].animation[an].bone[bi].rotateFrame[f].has("curve"):
+								offset+=curvature(animation,track_rot_index,f+offset,json_result.armature[i].animation[an].bone[bi].rotateFrame[f].curve);
+
 					if json_result.armature[i].animation[an].bone[bi].has("scaleFrame"):
 
 						var write_head=0;
@@ -598,19 +654,38 @@ func dbimport(val):
 							animation.bezier_track_insert_key(track_scale_y_index, write_head, newScale.y)
 							write_head+=json_result.armature[i].animation[an].bone[bi].scaleFrame[f].duration*framerate
 
+						var offset = 0;
+						for f in json_result.armature[i].animation[an].bone[bi].scaleFrame.size():
+							if json_result.armature[i].animation[an].bone[bi].scaleFrame[f].has("curve"):
+								curvature(animation,track_scale_x_index,f+offset,json_result.armature[i].animation[an].bone[bi].scaleFrame[f].curve)
+								offset+=curvature(animation,track_scale_y_index,f+offset,json_result.armature[i].animation[an].bone[bi].scaleFrame[f].curve);
+
 			if json_result.armature[i].animation[an].has("ffd"):
 				for ffdi in json_result.armature[i].animation[an].ffd.size():
-					var track_ffd_index = animation.add_track(Animation.TYPE_VALUE)
+					var track_ffd_index = animation.add_track(Animation.TYPE_BEZIER)
+
+					var track_start = animation.add_track(Animation.TYPE_VALUE)
+					animation.value_track_set_update_mode(track_start,Animation.UPDATE_DISCRETE)
+
+					var track_end = animation.add_track(Animation.TYPE_VALUE)
+					animation.value_track_set_update_mode(track_end,Animation.UPDATE_DISCRETE)
+
 					var f_name = json_result.armature[i].animation[an].ffd[ffdi].name
 
 					if f_name.rfind("/")!=-1:
 						f_name = f_name.substr(f_name.rfind("/")+1)
 
-					var path = String(skeleton.get_path_to(skeleton.find_child("SLOTS",false).find_child(json_result.armature[i].animation[an].ffd[ffdi].slot,false).find_child(f_name)))+":polygon"
-					animation.track_set_path(track_ffd_index, path);
+					skeleton.find_child("SLOTS",false).find_child(json_result.armature[i].animation[an].ffd[ffdi].slot,false).find_child(f_name).set_script(load("res://PolyEaseCurve.gd"))
+
+					var path = String(skeleton.get_path_to(skeleton.find_child("SLOTS",false).find_child(json_result.armature[i].animation[an].ffd[ffdi].slot,false).find_child(f_name)))
+					animation.track_set_path(track_ffd_index, path+":delta");
+
+					animation.track_set_path(track_start, path+":start");
+					animation.track_set_path(track_end, path+":end");
 
 					if json_result.armature[i].animation[an].ffd[ffdi].has("frame"):
 						var write_head=0;
+						var frames = [];
 						for f in json_result.armature[i].animation[an].ffd[ffdi].frame.size():
 							var offset=0
 							var nextvec = true_vertex_oder_dict[json_result.armature[i].animation[an].ffd[ffdi].slot][f_name].oder.duplicate()
@@ -643,8 +718,26 @@ func dbimport(val):
 								if not edges.has(float(p)):
 									keyframe.push_back(trans*nextvec[p])
 
-							animation.track_insert_key(track_ffd_index, write_head, keyframe)
+							frames.push_back(write_head)
+							frames.push_back(keyframe)
+
 							write_head+=json_result.armature[i].animation[an].ffd[ffdi].frame[f].duration*framerate
+						print(frames.size());
+						for f in range(0,frames.size(),2):
+							if(f!=0):
+								animation.bezier_track_insert_key(track_ffd_index, frames[f]+0.0001, 0);
+							else:
+								animation.bezier_track_insert_key(track_ffd_index, frames[f], 0);
+
+							if(f+3<frames.size()):
+								animation.bezier_track_insert_key(track_ffd_index, frames[f+2], 1);
+								animation.track_insert_key(track_start, frames[f], frames[f+1])
+								animation.track_insert_key(track_end,   frames[f], frames[f+3])
+
+						var offset = 0;
+						for f in json_result.armature[i].animation[an].ffd[ffdi].frame.size():
+							if json_result.armature[i].animation[an].ffd[ffdi].frame[f].has("curve"):
+								offset+=curvature(animation,track_ffd_index,f+offset+0.0001,json_result.armature[i].animation[an].ffd[ffdi].frame[f].curve);
 
 			if json_result.armature[i].animation[an].has("slot"):
 				for sl in json_result.armature[i].animation[an].slot.size():
@@ -662,15 +755,13 @@ func dbimport(val):
 						animation.track_set_path(track_rM_index, path+":r");
 						animation.track_set_path(track_gM_index, path+":g");
 						animation.track_set_path(track_bM_index, path+":b");
-
-#move to init
+#move to init or don't give a fuck
 						if(rest.find_track(path, Animation.TYPE_VALUE)==-1):
 							var track = rest.add_track(Animation.TYPE_VALUE)
 							rest.track_set_path(track, path)
 							rest.track_insert_key(track, write_head, slot.modulate);
 
 						for frame in json_result.armature[i].animation[an].slot[sl].colorFrame.size():
-#change to slot-reset value
 							var value = slot.modulate;
 							if json_result.armature[i].animation[an].slot[sl].colorFrame[frame].has("value"):
 								if json_result.armature[i].animation[an].slot[sl].colorFrame[frame].value.has("aM"):
@@ -689,6 +780,14 @@ func dbimport(val):
 
 							write_head+=json_result.armature[i].animation[an].slot[sl].colorFrame[frame].duration*framerate
 
+						var offset = 0;
+						for f in json_result.armature[i].animation[an].slot[sl].colorFrame.size():
+							if json_result.armature[i].animation[an].slot[sl].colorFrame[f].has("curve"):
+								curvature(animation,track_aM_index,f+offset,json_result.armature[i].animation[an].slot[sl].colorFrame[f].curve)
+								curvature(animation,track_rM_index,f+offset,json_result.armature[i].animation[an].slot[sl].colorFrame[f].curve)
+								curvature(animation,track_gM_index,f+offset,json_result.armature[i].animation[an].slot[sl].colorFrame[f].curve)
+								offset+=curvature(animation,track_bM_index,f+offset,json_result.armature[i].animation[an].slot[sl].colorFrame[f].curve)
+
 					if json_result.armature[i].animation[an].slot[sl].has("displayFrame"):
 						var write_head=0;
 						var slot = skeleton.find_child("SLOTS",false).find_child(json_result.armature[i].animation[an].slot[sl].name)
@@ -696,7 +795,7 @@ func dbimport(val):
 						animation.value_track_set_update_mode(track_slot_index,Animation.UPDATE_DISCRETE)
 						var path = String(skeleton.get_path_to(slot))+":current"
 						animation.track_set_path(track_slot_index, path);
-
+#move to init or don't give a fuck
 						if(rest.find_track(path, Animation.TYPE_VALUE)==-1):
 							var track = rest.add_track(Animation.TYPE_VALUE)
 							rest.track_set_path(track, path)
@@ -723,7 +822,6 @@ func dbimport(val):
 							arr = json_result.armature[i].animation[an].zOrder.frame[frame].zOrder
 						animation.track_insert_key(track_slot_index, write_head, arr)
 						write_head+=json_result.armature[i].animation[an].zOrder.frame[frame].duration*framerate
-
 #bend direction and weight
 			if json_result.armature[i].animation[an].has("ik"):
 				pass;
