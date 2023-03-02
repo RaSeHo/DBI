@@ -731,13 +731,20 @@ func dbimport(val):
 
 							if(f+3<frames.size()):
 								animation.bezier_track_insert_key(track_ffd_index, frames[f+2], 1);
-								animation.track_insert_key(track_start, frames[f], frames[f+1])
-								animation.track_insert_key(track_end,   frames[f], frames[f+3])
+								if(f>0):
+									animation.track_insert_key(track_start, frames[f]+0.0001, frames[f+1])
+									animation.track_insert_key(track_end,   frames[f]+0.0001, frames[f+3])
+								else:
+									animation.track_insert_key(track_start, frames[f], frames[f+1])
+									animation.track_insert_key(track_end,   frames[f], frames[f+3])
 
 						var offset = 0;
 						for f in json_result.armature[i].animation[an].ffd[ffdi].frame.size():
 							if json_result.armature[i].animation[an].ffd[ffdi].frame[f].has("curve"):
-								offset+=curvature(animation,track_ffd_index,f+offset+0.0001,json_result.armature[i].animation[an].ffd[ffdi].frame[f].curve);
+								if(f>0):
+									offset+=curvature(animation,track_ffd_index,f+offset+0.0001,json_result.armature[i].animation[an].ffd[ffdi].frame[f].curve);
+								else:
+									offset+=curvature(animation,track_ffd_index,f,json_result.armature[i].animation[an].ffd[ffdi].frame[f].curve);
 
 			if json_result.armature[i].animation[an].has("slot"):
 				for sl in json_result.armature[i].animation[an].slot.size():
