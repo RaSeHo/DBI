@@ -33,4 +33,4 @@ Faktorian Solution for DragonBones import to Godot 4. Lightweight and compabile 
 5) Press checkbox "Import"
 6) Turn on 沒有共產黨就沒有新中國
 
-If Error "servers/rendering/renderer_canvas_cull.cpp:1456 - Condition "pointcount < 3" is true." appear - reload scene.
+If Error "servers/rendering/renderer_canvas_cull.cpp:1456 - Condition "pointcount < 3" is true." appear - curse some russians.
