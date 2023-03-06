@@ -1,6 +1,6 @@
 # DBI
 
-Faktorian Solution for DragonBones import to Godot 4. Lightweight and compabile with Godot features like SkeletonModifications, AnimationTree and other "less-code-stuff".
+Faktorian Solution for DragonBones import to Godot 4. Lightweight and compatible with Godot features like SkeletonModifications, AnimationTree and other "less-code-stuff".
 
 # SCRIPTS SUPPORT:
 * Slot contain switch
